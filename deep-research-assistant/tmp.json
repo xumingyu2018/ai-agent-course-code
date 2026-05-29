@@ -1,0 +1,24 @@
+{
+    "todos": [
+        {
+            "content": "搜索国家统计局官网发布的《2023年国民经济和社会发展统计公报》",
+            "status": "in_progress"
+        },
+        {
+            "content": "搜索《中国统计年鉴2024》中分省GDP数据",
+            "status": "pending"
+        },
+        {
+            "content": "搜索广东、江苏、山东、浙江、河南、四川六省统计局官网发布的2023年统计公报",
+            "status": "pending"
+        },
+        {
+            "content": "整理GDP总量前6名省份的具体数值、同比增速、数据来源和发布日期",
+            "status": "pending"
+        },
+        {
+            "content": "写入 findings 文件",
+            "status": "pending"
+        }
+    ]
+}

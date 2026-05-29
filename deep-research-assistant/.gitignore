@@ -1,0 +1,7 @@
+.env
+node_modules/
+dist/
+workspace/sources/*
+workspace/reports/*
+!workspace/sources/.gitkeep
+!workspace/reports/.gitkeep

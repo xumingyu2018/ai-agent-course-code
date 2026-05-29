@@ -1,0 +1,23 @@
+{
+  "name": "deep-research-assistant",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "DeepAgents 深度调研助手实战项目",
+  "scripts": {
+    "start": "node src/cli.mjs",
+    "dev": "node src/cli.mjs"
+  },
+  "dependencies": {
+    "@langchain/community": "^1.1.29",
+    "@langchain/core": "^1.1.44",
+    "@langchain/langgraph": "^1.3.0",
+    "@langchain/openai": "^1.4.1",
+    "@langchain/quickjs": "^0.4.0",
+    "dedent": "^1.7.1",
+    "deepagents": "^1.10.2",
+    "dotenv": "^17.2.4",
+    "langchain": "^1.4.0",
+    "zod": "^4.3.6"
+  }
+}

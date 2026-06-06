@@ -1,0 +1,34 @@
+services:
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: redis-mem0-test
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/redis:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis 官方 Web GUI（类似 pgAdmin）
+  redisinsight:
+    image: redis/redisinsight:2.50
+    container_name: redisinsight-mem0-test
+    restart: always
+    ports:
+      - "5540:5540"
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/redisinsight:/data
+    environment:
+      - RI_HOST=0.0.0.0
+    depends_on:
+      - redis
+
+networks:
+  default:
+    name: common-network

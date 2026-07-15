@@ -13,6 +13,7 @@ const model = new ChatOpenAI({
 });
 
 async function inMemoryDemo() {
+  // 创建一个内存消息历史记录实例
   const history = new InMemoryChatMessageHistory();
 
   const systemMessage = new SystemMessage(

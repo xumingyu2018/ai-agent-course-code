@@ -13,6 +13,7 @@ const model = new ChatOpenAI({
   },
 });
 
+// 从文件中恢复历史消息，并继续对话
 async function fileHistoryDemo() {
   // 指定存储文件的路径
   const filePath = path.join(process.cwd(), "chat_history.json");

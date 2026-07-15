@@ -12,7 +12,7 @@ const model = new ChatOpenAI({
   },
 });
 
-// ========== 总结策略演示 ==========
+// ========== 总结策略演示(根据消息条数触发总结) ==========
 async function summarizationMemoryDemo() {
   const history = new InMemoryChatMessageHistory();
   const maxMessages = 6; // 超过 6 条消息时触发总结

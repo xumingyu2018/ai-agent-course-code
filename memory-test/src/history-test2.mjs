@@ -13,6 +13,7 @@ const model = new ChatOpenAI({
   },
 });
 
+// 把历史消息存储到文件中
 async function fileHistoryDemo() {
   // 指定存储文件的路径
   const filePath = path.join(process.cwd(), "chat_history.json");
@@ -24,6 +25,7 @@ async function fileHistoryDemo() {
   );
 
   console.log("[第一轮对话]");
+  // 创建一个文件系统消息历史记录实例
   const history = new FileSystemChatMessageHistory({
     filePath: filePath,
     sessionId: sessionId,

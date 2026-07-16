@@ -133,7 +133,7 @@ ${conv.content}`;
     console.log('\n【AI 回答】');
     const response = await model.invoke(contextMessages);
     
-    // 保存当前对话到历史消息
+    // 保存当前对话到内存历史消息
     await history.addMessage(userMessage);
     await history.addMessage(response);
     

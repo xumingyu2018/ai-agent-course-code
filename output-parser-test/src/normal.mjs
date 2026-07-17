@@ -28,6 +28,7 @@ try {
     console.log(jsonResult);
 
 } catch (error) {
+    // 本案例会由于大模型返回的内容带了额外的 markdown 语法，导致解析失败
     console.error("❌ 错误:", error.message);
 }
 

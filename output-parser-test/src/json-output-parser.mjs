@@ -12,6 +12,7 @@ const model = new ChatOpenAI({
     },
 });
 
+// 可以解析大模型返回的带了 markdown 语法的json
 const parser = new JsonOutputParser();
 
 const question = `请介绍一下爱因斯坦的信息。请以 JSON 格式返回，包含以下字段：name（姓名）、birth_year（出生年份）、nationality（国籍）、major_achievements（主要成就，数组）、famous_theory（著名理论）。

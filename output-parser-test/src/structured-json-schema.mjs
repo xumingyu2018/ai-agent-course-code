@@ -12,7 +12,7 @@ const scientistSchema = z.object({
     achievements: z.array(z.string()).describe("主要成就列表")
 }).strict();
 
-// 将 Zod 转换为原生的 JSON Schema 格式
+// 将 Zod 转换为原生的 JSON Schema 格式（指定大模型的输出格式为 json_schema 指定格式，它就会按照这个格式输出）
 const nativeJsonSchema = zodToJsonSchema(scientistSchema);
 
 const model = new ChatOpenAI({

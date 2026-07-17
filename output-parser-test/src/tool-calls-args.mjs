@@ -19,6 +19,7 @@ const scientistSchema = z.object({
     fields: z.array(z.string()).describe("研究领域列表"),
 });
 
+// 这里没定义 tool 的实现逻辑，因为我们只是告诉大模型有这个 tool、参数是什么格式，不需要执行
 const modelWithTool = model.bindTools([
     {
         name: "extract_scientist_info",
@@ -31,7 +32,7 @@ const modelWithTool = model.bindTools([
 const response = await modelWithTool.invoke("介绍一下爱因斯坦");
 
 console.log('response.tool_calls:',response.tool_calls)
-// 获取结构化结果
+// 获取结构化结果，通过返回的 tool_calls 信息，也能拿到结构化的数据。
 const result = response.tool_calls[0].args;
 
 console.log("结构化结果:", JSON.stringify(result, null, 2));

@@ -15,6 +15,7 @@ const prompt = `详细介绍莫扎特的信息。`;
 console.log("🌊 普通流式输出演示（无结构化）\n");
 
 try {
+    // 调用模型的 stream 方法获取流式输出，把 invoke 换成 stream 方法
     const stream = await model.stream(prompt);
 
     let fullContent = '';

@@ -29,26 +29,28 @@ const modelWithTools = model.bindTools(tools);
 async function runAgentWithTools(query, maxIterations = 30) {
     const history = new InMemoryChatMessageHistory();
 
+    // 添加AI系统消息
     await history.addMessage(new SystemMessage(`你是一个项目管理助手，使用工具完成任务。
 
-当前工作目录: ${process.cwd()}
+        当前工作目录: ${process.cwd()}
 
-工具：
-1. read_file: 读取文件
-2. write_file: 写入文件
-3. execute_command: 执行命令（支持 workingDirectory 参数）
-4. list_directory: 列出目录
+        工具：
+        1. read_file: 读取文件
+        2. write_file: 写入文件
+        3. execute_command: 执行命令（支持 workingDirectory 参数）
+        4. list_directory: 列出目录
 
-重要规则 - execute_command：
-- workingDirectory 参数会自动切换到指定目录
-- 当使用 workingDirectory 时，绝对不要在 command 中使用 cd
-- 错误示例: { command: "cd react-todo-app && pnpm install", workingDirectory: "react-todo-app" }
-- 正确示例: { command: "pnpm install", workingDirectory: "react-todo-app" }
+        重要规则 - execute_command：
+        - workingDirectory 参数会自动切换到指定目录
+        - 当使用 workingDirectory 时，绝对不要在 command 中使用 cd
+        - 错误示例: { command: "cd react-todo-app && pnpm install", workingDirectory: "react-todo-app" }
+        - 正确示例: { command: "pnpm install", workingDirectory: "react-todo-app" }
 
-重要规则 - write_file：
-- 当写入 React 组件文件（如 App.tsx）时，如果存在对应的 CSS 文件（如 App.css），在其他 import 语句后加上这个 css 的导入
-`));
+        重要规则 - write_file：
+        - 当写入 React 组件文件（如 App.tsx）时，如果存在对应的 CSS 文件（如 App.css），在其他 import 语句后加上这个 css 的导入
+        `));
 
+    // 添加用户的问题
     await history.addMessage(new HumanMessage(query));
 
     for (let i = 0; i < maxIterations; i++) {
@@ -62,7 +64,7 @@ async function runAgentWithTools(query, maxIterations = 30) {
         // 准备一个空的容器来拼接完整的 AIMessage
         let fullAIMessage = null;
 
-        // 准备一个 tool_call_chunks 的 JSON 增量解析器
+        // 准备一个 tool_call_chunks 的 JSON 增量解析器，JsonOutputToolsParser 能把不完整的json修复成完整的json再解析
         const toolParser = new JsonOutputToolsParser();
 
         // 记录每个工具调用已打印的长度（用 id 或 filePath 作为 key）
@@ -70,10 +72,12 @@ async function runAgentWithTools(query, maxIterations = 30) {
 
         console.log(chalk.bgBlue(`\n🚀 Agent 开始思考并生成流...\n`));
 
+        // 逐块接收流式数据，边接收边处理 AIMessageChunk + tool_call_chunks (fullAIMessage里面包含 tool_calls)
         for await (const chunk of rawStream) {
-            // 这里的 chunk 是 AIMessageChunk，把它拼接起来
+            // 这里的 chunk 是 AIMessageChunk，用 concat 来拼接起来
             fullAIMessage = fullAIMessage ? fullAIMessage.concat(chunk) : chunk;
 
+            // 处理 tool_call_chunks，
             let parsedTools = null;
             try {
                 parsedTools = await toolParser.parseResult([{ message: fullAIMessage }]);
@@ -81,6 +85,7 @@ async function runAgentWithTools(query, maxIterations = 30) {
                 // 解析失败说明 JSON 还不完整，忽略错误继续累积
             }
 
+            // 打印工具调用的增量内容
             if (parsedTools && parsedTools.length > 0) {
                 for (const toolCall of parsedTools) {
                     if (toolCall.type === 'write_file' && toolCall.args?.content) {
@@ -88,6 +93,7 @@ async function runAgentWithTools(query, maxIterations = 30) {
                         const currentContent = String(toolCall.args.content);
                         const previousLength = printedLengths.get(toolCallId);
 
+                        // 如果之前没有打印过内容，说明是第一次写入，第一次打印工具调用信息
                         if (previousLength === undefined) {
                             printedLengths.set(toolCallId, 0);
                             console.log(
@@ -97,10 +103,12 @@ async function runAgentWithTools(query, maxIterations = 30) {
                             );
                         }
 
+                        // 如果当前内容比之前打印的长度长，说明有新的内容需要打印，后续打印 slice 分割后的增量内容
                         if (currentContent.length > previousLength) {
-                            const newContent = currentContent.slice(previousLength);
+                            // 打字机效果
+                            const newContent = currentContent.slice(previousLength); // 只取新增部分
                             process.stdout.write(newContent);
-                            printedLengths.set(toolCallId, currentContent.length);
+                            printedLengths.set(toolCallId, currentContent.length); // 更新水位线
                         }
                     }
                 }
@@ -147,28 +155,28 @@ async function runAgentWithTools(query, maxIterations = 30) {
 
 const case1 = `创建一个功能丰富的 React TodoList 应用：
 
-1. 创建项目：echo -e "n\nn" | pnpm create vite react-todo-app --template react-ts
-2. 修改 src/App.tsx，实现完整功能的 TodoList：
- - 添加、删除、编辑、标记完成
- - 分类筛选（全部/进行中/已完成）
- - 统计信息显示
- - localStorage 数据持久化
-3. 添加复杂样式：
- - 渐变背景（蓝到紫）
- - 卡片阴影、圆角
- - 悬停效果
-4. 添加动画：
- - 添加/删除时的过渡动画
- - 使用 CSS transitions
-5. 列出目录确认
+    1. 创建项目：echo -e "n\nn" | pnpm create vite react-todo-app --template react-ts
+    2. 修改 src/App.tsx，实现完整功能的 TodoList：
+    - 添加、删除、编辑、标记完成
+    - 分类筛选（全部/进行中/已完成）
+    - 统计信息显示
+    - localStorage 数据持久化
+    3. 添加复杂样式：
+    - 渐变背景（蓝到紫）
+    - 卡片阴影、圆角
+    - 悬停效果
+    4. 添加动画：
+    - 添加/删除时的过渡动画
+    - 使用 CSS transitions
+    5. 列出目录确认
 
-注意：使用 pnpm，功能要完整，样式要美观，要有动画效果
+    注意：使用 pnpm，功能要完整，样式要美观，要有动画效果
 
-去掉 main.tsx 里的 index.css 导入
+    去掉 main.tsx 里的 index.css 导入
 
-之后在 react-todo-app 项目中：
-1. 使用 pnpm install 安装依赖
-2. 使用 pnpm run dev 启动服务器
+    之后在 react-todo-app 项目中：
+    1. 使用 pnpm install 安装依赖
+    2. 使用 pnpm run dev 启动服务器
 `;
 
 try {

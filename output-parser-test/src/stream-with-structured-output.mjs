@@ -22,6 +22,8 @@ const schema = z.object({
     biography: z.string().describe("简短传记")
 });
 
+// 用了 withStructuredOutput 之后，它会在 json 生成完通过校验后再返回（底层是 tool calls），但不是流式输出
+// withStructuredOutput 底层是 tool、json schema、output parser 这三者
 const structuredModel = model.withStructuredOutput(schema);
 
 const prompt = `详细介绍莫扎特的信息。`;

@@ -13,7 +13,7 @@ const model = new ChatOpenAI({
     },
 });
 
-// 使用 zod 定义复杂的输出结构
+// 使用 zod 定义复杂的输出结构，StructuredOutputParser 也可以用 zod 来描述复杂的对象格式
 const scientistSchema = z.object({
     name: z.string().describe("科学家的全名"),
     birth_year: z.number().describe("出生年份"),

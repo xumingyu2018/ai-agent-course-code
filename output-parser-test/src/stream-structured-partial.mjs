@@ -23,6 +23,7 @@ const schema = z.object({
     biography: z.string().describe("简短传记")
 });
 
+// 流式的情况下，用 output parser 还是更适合
 const parser = StructuredOutputParser.fromZodSchema(schema);
 
 const prompt = `详细介绍莫扎特的信息。\n\n${parser.getFormatInstructions()}`;
@@ -37,6 +38,7 @@ try {
 
     console.log("📡 接收流式数据:\n");
 
+    // 逐块接收流式数据
     for await (const chunk of stream) {
         chunkCount++;
         const content = chunk.content;

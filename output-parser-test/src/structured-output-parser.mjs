@@ -13,6 +13,7 @@ const model = new ChatOpenAI({
 });
 
 // 定义输出结构
+// StructuredOutputParser，它可以指定具体的 json 结构
 const parser = StructuredOutputParser.fromNamesAndDescriptions({
     name: "姓名",
     birth_year: "出生年份",

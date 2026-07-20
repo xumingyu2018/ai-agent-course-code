@@ -7,6 +7,8 @@ import {
 import { LengthBasedExampleSelector } from '@langchain/core/example_selectors';
 
 // 演示：使用 LengthBasedExampleSelector 自动选择「长度合适」的 few-shot 示例
+// 场景：如果示例特别多，会消耗更多token，可以根据不同的query，选择合适的示例加入 prompt，这里选长度合适的
+// 除了根据长度选择示例，也支持根据语义选择相近的示例（需要基于向量数据库milvus），根据 token 选择示例
 
 // 1. 初始化 Chat 模型
 const model = new ChatOpenAI({
@@ -58,12 +60,12 @@ const examples = [
   },
 ];
 
-// 4. 创建 LengthBasedExampleSelector
+// 4. 创建 LengthBasedExampleSelector（示例选择器）
 const exampleSelector = await LengthBasedExampleSelector.fromExamples(examples, {
   examplePrompt,
   // 这里简单地用字符长度近似控制，真实项目中可以配合 token 估算
   maxLength: 700,
-  getTextLength: (text) => text.length,
+  getTextLength: (text) => text.length, // 如果你要根据 token 多少来计算的话，改一下 getTextLength 参数即可
 });
 
 // 5. 基于 selector 构建 FewShotPromptTemplate

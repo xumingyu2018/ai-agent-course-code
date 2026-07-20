@@ -13,26 +13,28 @@ const model = new ChatOpenAI({
 });
 
 const naiveTemplate = PromptTemplate.fromTemplate(`
-你是一名严谨但不失人情味的工程团队负责人，需要根据本周数据写一份周报。
+    你是一名严谨但不失人情味的工程团队负责人，需要根据本周数据写一份周报。
 
-公司名称：{company_name}
-部门名称：{team_name}
-直接汇报对象：{manager_name}
-本周时间范围：{week_range}
+    公司名称：{company_name}
+    部门名称：{team_name}
+    直接汇报对象：{manager_name}
+    本周时间范围：{week_range}
 
-本周团队核心目标：
-{team_goal}
+    本周团队核心目标：
+    {team_goal}
 
-本周开发数据（Git 提交 / Jira 任务）：
-{dev_activities}
+    本周开发数据（Git 提交 / Jira 任务）：
+    {dev_activities}
 
-请根据以上信息生成一份【Markdown 周报】，要求：
-- 有简短的整体 summary（两三句话）
-- 有按模块/项目拆分的小结
-- 用一个 Markdown 表格列出关键指标（字段示例：模块 / 亮点 / 风险 / 下周计划）
-- 语气专业但有一点人情味，适合作为给老板和团队抄送的周报。
+    请根据以上信息生成一份【Markdown 周报】，要求：
+    - 有简短的整体 summary（两三句话）
+    - 有按模块/项目拆分的小结
+    - 用一个 Markdown 表格列出关键指标（字段示例：模块 / 亮点 / 风险 / 下周计划）
+    - 语气专业但有一点人情味，适合作为给老板和团队抄送的周报。
 `);
 
+// naiveTemplate.format作用是将模板中的占位符（如 {company_name}、{team_name} 等）替换为实际的值，从而生成一个完整的字符串。
+// 在这个例子中，`naiveTemplate.format` 方法接收一个对象作为参数，该对象包含了需要替换的键值对。每个键对应模板中的占位符，值则是要插入的实际内容。
 const prompt = await naiveTemplate.format({
     company_name: '星航科技',
     team_name: '数据智能平台组',

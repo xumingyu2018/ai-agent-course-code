@@ -44,6 +44,7 @@ const examplePrompt = PromptTemplate.fromTemplate(
 // 4. 连接 Milvus，并基于已存在的集合创建向量库
 const milvusAddress = process.env.MILVUS_ADDRESS ?? 'localhost:19530';
 
+// fromExistingCollection 方法会尝试从 Milvus 中加载已存在的集合，如果集合不存在则会报错
 const vectorStore = await Milvus.fromExistingCollection(embeddings, {
   collectionName: COLLECTION_NAME,
   clientConfig: {
@@ -60,6 +61,7 @@ const vectorStore = await Milvus.fromExistingCollection(embeddings, {
   },
 });
 
+// SemanticSimilarityExampleSelector: 语义相似度示例选择器
 const exampleSelector = new SemanticSimilarityExampleSelector({
   vectorStore,
   k: 2, // 每次只选出语义上最相近的 2 条示例

@@ -1,11 +1,13 @@
-import { pipelinePrompt } from "./pipeline-prompt-template.mjs";
+import { pipelinePrompt } from "./02_pipeline-prompt-template.mjs";
 
+// 相当于在 pipelinePrompt 的基础上，预先填充了部分变量（公司名、价值观、语气），后续只需要再填充剩余的变量即可。
 const pipelineWithPartial = await pipelinePrompt.partial({
     company_name: '星航科技',
     company_values: '「极致、开放、靠谱」的价值观',
     tone: '偏正式但不僵硬',
 });
 
+// 下面是两份不同的周报模板示例，展示了如何在同一个 pipelineWithPartial 上，使用不同的剩余变量生成不同的周报内容。
 const partialFormatted = await pipelineWithPartial.format({
     team_name: 'AI 平台组',
     manager_name: '刘东',

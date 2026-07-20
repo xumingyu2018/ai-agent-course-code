@@ -46,13 +46,13 @@ const examples = [
   },
 ];
 
-// 4. 把示例封装成 FewShotPromptTemplate
+// 4. 把示例封装成 FewShotPromptTemplate，能够生成一些带少量示例的 prompt
 const fewShotPrompt = new FewShotPromptTemplate({
   examples,
   examplePrompt,
-  prefix:
+  prefix: // 2个示例加上前缀
     `下面是几条已经写好的【周报示例】，你可以从中学习语气、结构和信息组织方式：\n`,
-  suffix:
+  suffix: // 加上后缀，告诉模型要做什么
     `\n基于上面的示例风格，请帮我写一份新的周报。` +
     `\n如果用户有额外要求，请在满足要求的前提下，尽量保持示例中的结构和条理性。`,
   inputVariables: [],

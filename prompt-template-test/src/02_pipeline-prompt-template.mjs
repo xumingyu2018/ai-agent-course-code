@@ -85,5 +85,5 @@ const pipelineFormatted = await pipelinePrompt.format({
     company_values: '「极致、开放、靠谱」的价值观',
 });
 
-// console.log('PipelinePromptTemplate 组合后的 Prompt：');
-// console.log(pipelineFormatted);
+console.log('PipelinePromptTemplate 组合后的 Prompt：');
+console.log(pipelineFormatted);

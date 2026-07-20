@@ -2,7 +2,7 @@ import { PromptTemplate, PipelinePromptTemplate } from '@langchain/core/prompts'
 import {
   personaPrompt,
   contextPrompt,
-} from './pipeline-prompt-template.mjs';
+} from './02_pipeline-prompt-template.mjs';
 
 // 示例：复用「人设 + 背景」模块，用于一个“季度 OKR 回顾邮件”场景
 
@@ -40,11 +40,11 @@ const okrReviewPipeline = new PipelinePromptTemplate({
   ],
   finalPrompt: PromptTemplate.fromTemplate(
     `{persona_block}
-{context_block}
-{task_block}
-{format_block}
+     {context_block}
+     {task_block}
+     {format_block}
 
-现在请生成本次的【季度 OKR 回顾邮件】：`
+    现在请生成本次的【季度 OKR 回顾邮件】：`
   )
 });
 

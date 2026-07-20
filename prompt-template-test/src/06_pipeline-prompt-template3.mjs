@@ -8,7 +8,7 @@ import {
 import {
   personaPrompt,
   contextPrompt,
-} from './pipeline-prompt-template.mjs';
+} from './02_pipeline-prompt-template.mjs';
 
 // 初始化 Chat 模型
 const model = new ChatOpenAI({
@@ -49,23 +49,23 @@ const finalChatPrompt = ChatPromptTemplate.fromMessages([
     'system',
     `你是一名资深工程团队负责人，擅长把复杂的技术细节总结成结构化、易读的周报。
 
-下面是一些已经预先整理好的信息块，请你综合理解后，再根据用户补充的信息生成周报。`,
+    下面是一些已经预先整理好的信息块，请你综合理解后，再根据用户补充的信息生成周报。`,
   ],
   [
     'human',
     `人设与写作风格：
-{persona_block}
+    {persona_block}
 
-团队与本周背景：
-{context_block}
+    团队与本周背景：
+    {context_block}
 
-任务与输入数据：
-{task_block}
+    任务与输入数据：
+    {task_block}
 
-输出格式要求：
-{format_block}
+    输出格式要求：
+    {format_block}
 
-现在请基于以上信息，直接输出最终的周报内容。`,
+    现在请基于以上信息，直接输出最终的周报内容。`,
   ],
 ]);
 
@@ -81,6 +81,10 @@ const weeklyChatPipelinePrompt = new PipelinePromptTemplate({
 });
 
 // E. 示例：构造一份消息数组并喂给 Chat 模型
+// formatPromptValue 和 formatMessages 的区别是：
+// - formatPromptValue 返回的是一个 PromptValue 对象，里面包含了 messages、text 等属性。
+// - formatMessages 直接返回一个 Message 消息数组，适合直接传给模型调用。
+// - 这里我们使用 formatPromptValue 来展示 Pipeline + ChatPromptTemplate 的组合效果。
 const promptValue = await weeklyChatPipelinePrompt.formatPromptValue({
   tone: '专业、清晰、略带鼓励',
   company_name: '星航科技',
@@ -96,7 +100,7 @@ const promptValue = await weeklyChatPipelinePrompt.formatPromptValue({
 });
 
 console.log('Pipeline + ChatPromptTemplate 生成的消息:');
-console.log(promptValue.toChatMessages());
+console.log(promptValue.toChatMessages()); // 用 toChatMessages() 方法获取 PromptValue 对象的 messages 数组，方便直接传给模型调用
 
 // const aiResponse = await model.invoke(messages);
 

@@ -1,6 +1,11 @@
 import 'dotenv/config';
 import { ChatOpenAI } from '@langchain/openai';
-import { ChatPromptTemplate } from '@langchain/core/prompts';
+import {
+  ChatPromptTemplate,
+  SystemMessagePromptTemplate,
+  HumanMessagePromptTemplate,
+  AIMessagePromptTemplate,
+} from '@langchain/core/prompts';
 
 const model = new ChatOpenAI({
   modelName: process.env.MODEL_NAME,
@@ -11,18 +16,16 @@ const model = new ChatOpenAI({
   },
 });
 
-
-const chatPrompt = ChatPromptTemplate.fromMessages([
-  [
-    'system',
-    `你是一名资深工程团队负责人，擅长用结构化、易读的方式写技术周报。
+// ChatPromptTemplate 包含了 SystemMessagePromptTemplate、HumanMessagePromptTemplate、AIMessagePromptTemplate 等子类，可以分别定义系统消息、用户消息和 AI 消息的模板。
+const systemTemplate = SystemMessagePromptTemplate.fromTemplate(
+  `你是一名资深工程团队负责人，擅长用结构化、易读的方式写技术周报。
 写作风格要求：{tone}。
 
-请根据后续用户提供的信息，帮他生成一份适合给老板和团队同时抄送的周报草稿。`,
-  ],
-  [
-    'human',
-    `本周信息如下：
+请根据后续用户提供的信息，帮他生成一份适合给老板和团队同时抄送的周报草稿。`
+);
+
+const humanTemplate = HumanMessagePromptTemplate.fromTemplate(
+  `本周信息如下：
 
 公司名称：{company_name}
 团队名称：{team_name}
@@ -40,11 +43,15 @@ const chatPrompt = ChatPromptTemplate.fromMessages([
 2. 详细拆分（按项目或模块分段）
 3. 关键指标表格（字段示例：模块 / 亮点 / 风险 / 下周计划）
 
-语气专业但有人情味。`,
-  ],
+语气专业但有人情味。`
+);
+
+const composedTemplate = ChatPromptTemplate.fromMessages([
+  systemTemplate,
+  humanTemplate,
 ]);
 
-const chatMessages = await chatPrompt.formatMessages({
+const chatMessages = await composedTemplate.formatMessages({
   tone: '专业、清晰、略带鼓励',
   company_name: '星航科技',
   team_name: '智能应用平台组',
@@ -58,11 +65,11 @@ const chatMessages = await chatPrompt.formatMessages({
     '- 实习生小陈：补充使用文档和 FAQ，支持 3 个内部试点团队',
 });
 
-console.log('ChatPromptTemplate 生成的消息:');
+console.log('使用 SystemMessagePromptTemplate / HumanMessagePromptTemplate 生成的消息:');
 console.log(chatMessages);
 
-const response = await model.invoke(chatMessages);
+// const response = await model.invoke(chatMessages);
 
-console.log('\nAI 生成的周报草稿:');
-console.log(response.content);
+// console.log('\nAI 生成的周报草稿:');
+// console.log(response.content);
 

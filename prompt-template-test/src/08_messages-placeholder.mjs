@@ -55,6 +55,7 @@ const historyMessages = [
   },
 ];
 
+// 4. 使用 ChatPromptTemplate.formatPromptValue() 方法，将历史对话 history 变量和 current_input 注入到 Prompt 中
 const formattedMessages = await chatPromptWithHistory.formatPromptValue({
   history: historyMessages,
   current_input: '现在我们想再优化一下多人协同编辑周报的流程，有什么建议？',

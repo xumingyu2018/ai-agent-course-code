@@ -159,7 +159,7 @@ const ragChain = RunnableSequence.from([
   }),
   promptTemplate,
   model,
-  new StringOutputParser(),
+  new StringOutputParser(), // 这里用 StringOutputParser 把大模型返回结果变为字符串，然后用 stream 流式打印
 ]);
 
 
@@ -193,6 +193,7 @@ async function main() {
     console.log("=".repeat(80));
     console.log("\n【AI 流式回答】\n");
 
+    // 用 chain 的方式来写有很多好处，可以在每个节点上加一些逻辑，比如重试、传入配置、回调等
     const stream = await ragChain.stream(input);
 
     for await (const chunk of stream) {

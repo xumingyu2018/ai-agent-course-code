@@ -12,8 +12,8 @@ const premiumTranslator = RunnableLambda.from(async (text) => {
 const standardTranslator = RunnableLambda.from(async (text) => {
   console.log("[Standard] 尝试翻译...");
   // 模拟标准服务也挂了
-  return "xxx";
-  // throw new Error("Standard 服务限流");
+  // return "xxx";
+  throw new Error("Standard 服务限流");
 });
 
 const localTranslator = RunnableLambda.from(async (text) => {
@@ -23,7 +23,7 @@ const localTranslator = RunnableLambda.from(async (text) => {
   return words.map((w) => dict[w] ?? w).join("");
 });
 
-// withFallbacks：依次尝试 premium → standard → local
+// withFallbacks：依次尝试 premium → standard → local，回退备选
 const translator = premiumTranslator.withFallbacks({
   fallbacks: [standardTranslator, localTranslator],
 });

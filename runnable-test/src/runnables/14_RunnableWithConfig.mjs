@@ -107,6 +107,8 @@ const chainWithConfig2 = chain.withConfig({
 });
 
 // 输入为"要发送的通知文案"
+// 在第一个节点根据配置拿用户信息，第二个节点根据配置做权限判断，第三个节点根据配置返回不同语言的内容
+// 通过 withConfig 可以给 chain 的每个节点加上配置信息，可以通过第二个参数取出来用
 const result = await chainWithConfig.invoke("你有一条新的系统通知，请及时查看。");
 console.log("✅ 最终通知内容:\n", result.finalContent);
 

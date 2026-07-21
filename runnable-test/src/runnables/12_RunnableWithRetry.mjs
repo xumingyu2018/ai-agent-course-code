@@ -3,7 +3,7 @@ import { RunnableLambda } from "@langchain/core/runnables";
 
 let attempt = 0;
 
-// 一个会随机失败的 Runnable，用来演示 withRetry
+// 一个会随机失败的 Runnable，用来演示 withRetry 重试
 const unstableRunnable = RunnableLambda.from(async (input) => {
   attempt += 1;
   console.log(`第 ${attempt} 次尝试，输入: ${input}`);

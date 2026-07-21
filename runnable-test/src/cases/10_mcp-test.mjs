@@ -34,12 +34,13 @@ const modelWithTools = model.bindTools(tools);
 
 const prompt = ChatPromptTemplate.fromMessages([
     ["system", "你是一个可以调用 MCP 工具的智能助手。"],
-    new MessagesPlaceholder("messages"),
+    new MessagesPlaceholder("messages"), 
 ]);
 
 const llmChain = prompt.pipe(modelWithTools);
 
-// 1. 定义处理工具调用的逻辑 (封装为 Runnable)
+// 1. 定义处理工具调用的逻辑 (封装为 Runnable)，RunnableLambda 可以直接把一个函数包装成 Runnable，让它拥有.invoke()、.pipe()、.map() 等方法
+// 这是另一个 chain，这样可以直接放进 LangChain 的流水线
 const toolExecutor = new RunnableLambda({
     func: async (input) => {
         const { response, tools } = input;
@@ -68,7 +69,8 @@ const toolExecutor = new RunnableLambda({
 
 // 2. 对结果的处理
 const agentStepChain = RunnableSequence.from([
-    // step1: 将 LLM 输出挂到 state.response 上
+    // step1: 将 LLM 输出挂到 state.response 上，RunnablePassthrough.assign 的作用是把上一步的输出挂到 state 上，方便后续 RunnableBranch 分支判断
+    // 这里相当于 Object.assign(...state, { response: llmChain })，复制一份 state，添加 response 字段
     RunnablePassthrough.assign({
         response: llmChain,
     }),
@@ -86,7 +88,7 @@ const agentStepChain = RunnableSequence.from([
                     return {
                         ...state,
                         messages: newMessages,
-                        done: true,
+                        done: true, // 标记本轮完成，生成最终回复
                         final: response.content,
                     };
                 },
@@ -118,7 +120,7 @@ const agentStepChain = RunnableSequence.from([
                     };
                 },
             }),
-            // 调用工具执行器，得到 toolMessages
+            // 调用工具执行器，得到 toolMessages，用 RunnablePassthrough.assign 把执行结果加到 toolMessage 属性上
             RunnablePassthrough.assign({
                 toolMessages: toolExecutor,
             }),
@@ -137,6 +139,7 @@ const agentStepChain = RunnableSequence.from([
 ]);
 
 async function runAgentWithTools(query, maxIterations = 30) {
+    // 加了一个 state 在多个 Runnable 之间传递，记录了 messages 数组、是否 done、以及最终的回复 final 以及所有 tools
     let state = {
         messages: [new HumanMessage(query)],
         done: false,
@@ -148,7 +151,7 @@ async function runAgentWithTools(query, maxIterations = 30) {
         console.log(chalk.bgGreen(`⏳ 正在等待 AI 思考...`));
 
         // 每一轮都通过一个完整的 Runnable chain（LLM + 工具调用处理）
-        state = await agentStepChain.invoke(state);
+        state = await agentStepChain.invoke(state); // 自动执行所有的 Runnable
 
         if (state.done) {
             console.log(`\n✨ AI 最终回复:\n${state.final}\n`);

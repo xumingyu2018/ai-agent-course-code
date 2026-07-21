@@ -35,11 +35,11 @@ const getMessageHistory = (sessionId) => {
 };
 
 // 创建带消息历史的链
-const chain = new RunnableWithMessageHistory({
+const chain = new RunnableWithMessageHistory({ // 给 chain 加上 memory 的功能
   runnable: simpleChain,
   getMessageHistory: (sessionId) => getMessageHistory(sessionId),
   inputMessagesKey: "question",
-  historyMessagesKey: "history",
+  historyMessagesKey: "history", //  history 对话历史用 MessagesPlaceholder 插入
 });
 
 // 测试：第一次对话

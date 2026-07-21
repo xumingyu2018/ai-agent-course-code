@@ -2,10 +2,11 @@ import 'dotenv/config';
 import { RouterRunnable, RunnableLambda } from "@langchain/core/runnables";
 
 // 创建两个简单的 RunnableLambda
+// RunnableLambda 是一个可以将普通函数包装为可运行对象的类
 const toUpperCase = RunnableLambda.from((text) => text.toUpperCase());
 const reverseText = RunnableLambda.from((text) => text.split("").reverse().join(""));
 
-// 创建 RouterRunnable，根据 key 选择要调用的 runnable
+// 创建 RouterRunnable，根据 key 选择要调用的 runnable，相当于 switch case
 const router = new RouterRunnable({
   runnables: {
     toUpperCase,

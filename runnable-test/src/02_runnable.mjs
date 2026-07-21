@@ -30,6 +30,7 @@ const promptTemplate = PromptTemplate.fromTemplate(
 //     .pipe(model)
 //     .pipe(outputParser);
 
+// 用 RunnableSequence 声明这三个顺序执行，然后直接执行这条 chain 就好了
 const chain = RunnableSequence.from([
     promptTemplate,
     model,

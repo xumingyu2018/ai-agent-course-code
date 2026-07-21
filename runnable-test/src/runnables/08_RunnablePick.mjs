@@ -15,7 +15,7 @@ const chain = RunnableSequence.from([
     ...input,
     fullInfo: `${input.name}，${input.age}岁，来自${input.city}`,
   }),
-  new RunnablePick(["name", "fullInfo"]),
+  new RunnablePick(["name", "fullInfo"]), // 从对象里取一些属性，相当于TypeScript里的 Pick<T, K>，只保留指定的属性
 ]);
 
 const result = await chain.invoke(inputData);

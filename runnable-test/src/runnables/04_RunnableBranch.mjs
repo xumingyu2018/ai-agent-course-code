@@ -12,7 +12,7 @@ const handleNegative = RunnableLambda.from((input) => `负数: ${input} - 10 = $
 const handleEven = RunnableLambda.from((input) => `偶数: ${input} * 2 = ${input * 2}`);
 const handleDefault = RunnableLambda.from((input) => `默认: ${input}`);
 
-// 创建 RunnableBranch
+// 创建 RunnableBranch, 相当于 if else 的逻辑
 const branch = RunnableBranch.from([
     [isPositive, handlePositive],
     [isNegative, handleNegative],

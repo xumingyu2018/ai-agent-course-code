@@ -30,11 +30,11 @@ const input = {
     format_instructions: outputParser.getFormatInstructions()
 };
 
-// 步骤 1: 格式化 prompt
+// 步骤 1: 格式化 prompt（用 PromptTemplate 管理 prompt，调用 format 传入占位符的值）
 const formattedPrompt = await promptTemplate.format(input);
 // 步骤 2: 调用模型
 const response = await model.invoke(formattedPrompt);
-// 步骤 3: 解析输出
+// 步骤 3: 解析输出（用 StructuredOutputParser 做结构化解析）
 const result = await outputParser.invoke(response);
 console.log('✅ 最终结果:');
 console.log(result);

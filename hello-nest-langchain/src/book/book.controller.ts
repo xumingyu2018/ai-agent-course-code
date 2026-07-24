@@ -6,6 +6,7 @@ import { UpdateBookDto } from './dto/update-book.dto';
 @Controller('book')
 export class BookController {
 
+  // 构造器参数的注入
   constructor(private readonly bookService: BookService) {}
 
   @Post()

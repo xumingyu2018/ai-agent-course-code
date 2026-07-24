@@ -106,8 +106,10 @@
         btn.disabled = true;
         status.textContent = "连接中...";
 
+        // 使用 EventSource 连接 SSE 接口，在 onmessage 回调里接收 data
         const eventSource = new EventSource(url);
 
+        // onmessage 和 addEventListener("done") 都是监听 SSE 事件的方式，onmessage 是默认事件，addEventListener 可以监听自定义done事件
         eventSource.onmessage = ({ data }) => {
           output.textContent += data;
           status.textContent = "接收中...";

@@ -5,6 +5,7 @@ import { UpdateBookDto } from './dto/update-book.dto';
 @Injectable()
 export class BookService {
 
+  // 属性注入
   @Inject('BOOK_REPOSITORY')
   private readonly bookRepository: any;
 

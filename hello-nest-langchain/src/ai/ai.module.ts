@@ -9,6 +9,7 @@ import { ChatOpenAI } from '@langchain/openai';
   providers: [AiService,
     {
       provide: 'CHAT_MODEL',
+      // 用 useFactory 的动态注入方式创建 ChatModel 的 provider
       useFactory: (configService: ConfigService) => {
         return new ChatOpenAI({
           model: configService.get('MODEL_NAME'),

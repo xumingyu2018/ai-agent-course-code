@@ -8,7 +8,7 @@ import { BookController } from './book.controller';
     BookService,
     {
       provide: 'BOOK_REPOSITORY',
-      useFactory() {
+      useFactory() { // useFactory 函数返回一个对象，它也可以作为 provider 来用
         // 内存 mock 仓库，适合测试，无需外部依赖
         const books: { id: number; title: string }[] = [
           { id: 1, title: 'Book 1' },

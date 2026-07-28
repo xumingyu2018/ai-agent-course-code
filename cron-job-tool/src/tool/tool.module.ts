@@ -8,14 +8,15 @@ import { TimeNowToolService } from './time-now-tool.service';
 import { CronJobToolService } from './cron-job-tool.service';
 import { JobModule } from '../job/job.module';
 
+// 单独一个模块来管理 tool
 @Module({
-  imports: [UsersModule, forwardRef(() => JobModule)],
+  imports: [UsersModule, forwardRef(() => JobModule)], // forwardRef 解决循环依赖问题，为什么会有循环依赖？因为 JobModule 依赖 ToolModule，而 ToolModule 也依赖 JobModule
   providers: [
     LlmService,
     SendMailToolService,
     WebSearchToolService,
     DbUsersCrudToolService,
-    TimeNowToolService,
+    TimeNowToolService, // TimeNowToolService 是一个工具服务，提供获取当前时间的功能，不然你说 10 分钟之后执行，大模型根本不知道当前时间是什么
     CronJobToolService,
     {
       provide: 'CHAT_MODEL',

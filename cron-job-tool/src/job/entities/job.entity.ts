@@ -8,12 +8,13 @@ import {
 
 export type JobType = 'cron' | 'every' | 'at';
 
+// 持久化定时任务实体类
 @Entity()
 export class Job {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('uuid') // @PrimaryGeneratedColumn('uuid') 标识这个字段是主键，并且是 UUID 类型的自增长
   id: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text' }) // 指令文本
   instruction: string;
 
   @Column({ type: 'varchar', length: 10, default: 'cron' })

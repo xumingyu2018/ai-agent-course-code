@@ -14,6 +14,7 @@ export class JobAgentService {
   private readonly logger = new Logger(JobAgentService.name);
   private readonly modelWithTools: Runnable<BaseMessage[], AIMessage>;
 
+  // 注入除了定时任务之外的其他 tool（禁止在定时任务里跑定时任务）
   constructor(
     @Inject('CHAT_MODEL') model: ChatOpenAI,
     @Inject('SEND_MAIL_TOOL') private readonly sendMailTool: any,

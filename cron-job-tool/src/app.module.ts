@@ -16,7 +16,9 @@ import { CronJob } from 'cron';
 
 @Module({
   imports: [
+    // 引入定时任务模块
     ScheduleModule.forRoot(),
+    // TypeOrm 为了让 NestJS 能够连接数据库，使用 TypeORM 作为 ORM 框架
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
@@ -24,10 +26,10 @@ import { CronJob } from 'cron';
       username: 'root',
       password: 'admin',
       database: 'hello',
-      synchronize: true,
-      connectorPackage: 'mysql2',
+      synchronize: true, // synchronize: true 会自动创建数据库表
+      connectorPackage: 'mysql2', // 使用 mysql2 作为数据库连接器
       logging: true,
-      entities: [User, Job],
+      entities: [User, Job], // 指定实体类，TypeORM 会根据这些实体类创建数据库表，把对数据库表的操作转换为对对象的操作
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
@@ -37,6 +39,7 @@ import { CronJob } from 'cron';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    // AppModule 中配置 MailerModule 发送邮箱，使用 forRootAsync 方法异步加载配置
     MailerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -60,35 +63,39 @@ import { CronJob } from 'cron';
   controllers: [AppController],
   providers: [AppService],
 })
+
+// 定时任务测试代码
+// 实现了 OnApplicationBootstrap 就可以在 onApplicationBootstrap 里加一些应用启动时执行的逻辑
 export class AppModule implements OnApplicationBootstrap {
-  @Inject(SchedulerRegistry)
+  @Inject(SchedulerRegistry) // 注入 SchedulerRegistry 来管理定时任务 CronJob，如添加、删除、获取定时任务等
   schedulerRegistry: SchedulerRegistry;
 
   async onApplicationBootstrap() {
-    // const job = new CronJob(CronExpression.EVERY_SECOND, () => {
-    //   console.log('run job');
-    // });
-    // this.schedulerRegistry.addCronJob('job1', job);
-    // job.start();
-    // setTimeout(() => {
-    //   this.schedulerRegistry.deleteCronJob('job1');
-    // }, 5000);
+    // CronExpression.EVERY_SECOND 表示每秒执行一次，CronJob 的回调函数里可以写定时任务的逻辑
+  //   const job = new CronJob(CronExpression.EVERY_SECOND, () => {
+  //     console.log('run job');
+  //   });
+  //   this.schedulerRegistry.addCronJob('job1', job);
+  //   job.start();
+  //   setTimeout(() => {
+  //     this.schedulerRegistry.deleteCronJob('job1');
+  //   }, 5000);
 
-    // const intervalRef = setInterval(() => {
-    //   console.log('run interval job');
-    // }, 1000);
-    // this.schedulerRegistry.addInterval('interval1', intervalRef);
-    // setTimeout(() => {
-    //   this.schedulerRegistry.deleteInterval('interval1');
-    // }, 5000);
+  //   const intervalRef = setInterval(() => {
+  //     console.log('run interval job');
+  //   }, 1000);
+  //   this.schedulerRegistry.addInterval('interval1', intervalRef);
+  //   setTimeout(() => {
+  //     this.schedulerRegistry.deleteInterval('interval1');
+  //   }, 5000);
 
-    // const timeoutRef = setTimeout(() => {
-    //   console.log('run timeout job');
-    // }, 3000);
-    // this.schedulerRegistry.addTimeout('timeout1', timeoutRef);
-    // setTimeout(() => {
-    //   this.schedulerRegistry.deleteTimeout('timeout1');
-    // }, 5000);
+  //   const timeoutRef = setTimeout(() => {
+  //     console.log('run timeout job');
+  //   }, 3000);
+  //   this.schedulerRegistry.addTimeout('timeout1', timeoutRef);
+  //   setTimeout(() => {
+  //     this.schedulerRegistry.deleteTimeout('timeout1');
+  //   }, 5000);
   }
 }
 

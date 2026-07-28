@@ -26,11 +26,11 @@ export class JobService implements OnApplicationBootstrap {
 
   async onApplicationBootstrap() {
     const enabledJobs = await this.entityManager.find(Job, {
-      where: { isEnabled: true },
+      where: { isEnabled: true }, // 只获取启用的定时任务
     });
-    const cronJobs = this.schedulerRegistry.getCronJobs();
-    const intervals = this.schedulerRegistry.getIntervals();
-    const timeouts = this.schedulerRegistry.getTimeouts();
+    const cronJobs = this.schedulerRegistry.getCronJobs(); // 获取所有的 cron 定时任务
+    const intervals = this.schedulerRegistry.getIntervals(); // 获取所有的 interval 定时任务
+    const timeouts = this.schedulerRegistry.getTimeouts(); // 获取所有的 timeout 定时任务
 
     for (const job of enabledJobs) {
       const alreadyRegistered =

@@ -18,8 +18,10 @@ const TEXTS = [
   "我长长松了口气。",
 ];
 
+// tts流式将文本生成音频的过程中，服务端会分多次返回音频数据
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// 签名握手阶段，构造带签名的 WebSocket URL
 function buildWsUrl() {
   const now = Math.floor(Date.now() / 1000);
   const sessionId = `session_${now}_${Math.random().toString(36).slice(2)}`;
@@ -38,6 +40,7 @@ function buildWsUrl() {
     Volume: 5,
   };
 
+  // 计算签名，腾讯云规定的固定套路，参数按 key 字典序排序，顺序错了签名必错
   const sortedKeys = Object.keys(params).sort();
   const signStr = sortedKeys.map((k) => `${k}=${params[k]}`).join("&");
   const rawStr = `GETtts.cloud.tencent.com/stream_wsv2?${signStr}`;
@@ -58,10 +61,12 @@ function buildWsUrl() {
 
 async function sendTexts(ws, sessionId) {
   for (let i = 0; i < TEXTS.length; i++) {
+    // 发送合成指令，action为"ACTION_SYNTHESIS"
     ws.send(JSON.stringify({ session_id: sessionId, message_id: `msg_${i}`, action: "ACTION_SYNTHESIS", data: TEXTS[i] }));
     console.log(`[文本] 已发送: ${TEXTS[i]}`);
     if (i < TEXTS.length - 1) await sleep(TEXT_INTERVAL_MS);
   }
+  // 全部发完后发 action: "ACTION_COMPLETE",告诉服务端"没有更多文本了,可以收尾了
   ws.send(JSON.stringify({ session_id: sessionId, action: "ACTION_COMPLETE" }));
   console.log("[文本] 已发送 ACTION_COMPLETE");
 }
@@ -72,11 +77,13 @@ function streamTTS() {
   }
 
   const { url, sessionId } = buildWsUrl();
+  // 建立 WebSocket 连接
   const ws = new WebSocket(url);
+  // 创建写入流，将接收到的音频数据写入文件，用 fs.createWriteStream 异步写入文件
   const writeStream = fs.createWriteStream(OUTPUT_FILE, { flags: "w" });
-  let totalBytes = 0;
-  let closed = false;
-  let sent = false;
+  let totalBytes = 0; // 统计收到的音频字节数
+  let closed = false; // 标记是否已关闭连接，避免重复关闭
+  let sent = false; // 标记是否已发送文本，避免重复发送
 
   const closeAll = () => {
     if (closed) return;
@@ -102,6 +109,7 @@ function streamTTS() {
       const msg = JSON.parse(data.toString());
       console.log("[消息]", JSON.stringify(msg));
 
+      // 服务端准备好了,这时才开始发文本
       if (msg.ready === 1 && !sent) {
         sent = true;
         await sendTexts(ws, sessionId);

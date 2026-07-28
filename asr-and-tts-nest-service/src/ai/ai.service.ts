@@ -22,12 +22,15 @@ export class AiService {
     try {
       const stream = await this.chain.stream({ query });
       for await (const chunk of stream) {
+        // 每个 chunk 在 yield 给 SSE 之前，同时 emit 一个 chunk 事件（携带 sessionId），文字流"分叉"给 TTS 做流式语音功能
         if (ttsSessionId) {
           const event: AiTtsStreamEvent = {
             type: 'chunk',
             sessionId: ttsSessionId,
             chunk,
           };
+          // 在 SSE 接口生成流式文本的时候，通过事件的方式同时推送给 ws 接口，这里用腾讯云的流式语音接口生成语音数据后，推送给前端代码来播放语音
+          // 这里 emit 这个事件的时候就会自动调用 tts-relay.service.ts 里的 handleAiStreamEvent 方法，来把这个 chunk 推送给前端
           this.eventEmitter.emit(AI_TTS_STREAM_EVENT, event);
         }
         yield chunk;

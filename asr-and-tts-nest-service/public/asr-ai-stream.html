@@ -351,20 +351,29 @@
         ttsAudioEl.load();
       }
 
+      // 前端 MediaSource API 流式播放音频的思路：
+      // audio.src = URL.createObjectURL(new MediaSource())
+      //   → sourceopen 后 addSourceBuffer('audio/mpeg')，mode = 'sequence'
+      //   → WS 每收到二进制块 → 入队 → sourceBuffer.appendBuffer(chunk)
+      //   → appendBuffer 是异步的，必须等 updateend 再 append 下一块（所以要队列 + updating 检查），updateend 是用来通知我们上一块已经处理完了，可以继续 append 下一块
+      //   → 收到 tts_final → mediaSource.endOfStream()
       function prepareStreamingAudio() {
         resetTtsPlayer();
         if (!window.MediaSource || !MediaSource.isTypeSupported("audio/mpeg")) {
           return;
         }
 
+        // 给 audio 的 element 设置 MediaSource 的 object url
+        // 然后添加一个 SourceBuffer，之后 ws 返回的服务，往这个 sourceBuffer.appendBuffer 就好了
         ttsMediaSource = new MediaSource();
         ttsObjectUrl = URL.createObjectURL(ttsMediaSource);
         ttsAudioEl.src = ttsObjectUrl;
 
+        // MediaSource 通过 SourceBuffer 动态添加流式的语音数据，就可以实现流式播放
         ttsMediaSource.addEventListener("sourceopen", () => {
           if (!ttsMediaSource) return;
           ttsSourceBuffer = ttsMediaSource.addSourceBuffer("audio/mpeg");
-          ttsSourceBuffer.mode = "sequence";
+          ttsSourceBuffer.mode = "sequence"; // 队列模式，按顺序播放
           ttsSourceBuffer.addEventListener("updateend", flushTtsBufferQueue);
           flushTtsBufferQueue();
         });
@@ -423,6 +432,7 @@
             return;
           }
 
+          // 和后端的 /speech/tts/ws 建立 websocket 连接，获取 sessionId
           const protocol = window.location.protocol === "https:" ? "wss" : "ws";
           const wsUrl = `${protocol}://${window.location.host}/speech/tts/ws`;
           const ws = new WebSocket(wsUrl);
@@ -434,6 +444,7 @@
           };
 
           ws.onmessage = (event) => {
+            // 字符串作为 JSON 来 parse，根据不同的类型做不同处理
             if (typeof event.data === "string") {
               try {
                 const msg = JSON.parse(event.data);
@@ -452,6 +463,7 @@
               } catch {
                 // ignore
               }
+            // 二进制就作为语音播放
             } else if (event.data instanceof ArrayBuffer) {
               ttsPendingBuffers.push(event.data);
               flushTtsBufferQueue();
@@ -477,6 +489,7 @@
           activeAssistantContentEl = aiMsg.content;
           activeAssistantMetaEl = aiMsg.meta;
 
+          // 流式文字 SSE 通道
           const url =
             "/ai/chat/stream?query=" +
             encodeURIComponent(query) +
@@ -517,6 +530,7 @@
         setStatus("AI 正在流式回答...", true);
 
         try {
+          // 双通道：流式语音 WS 通道 + 流式文字 SSE 通道 
           await ensureTtsConnection();
           await streamAiReply(trimmed);
           setStatus("对话完成");
@@ -552,6 +566,8 @@
           return;
         }
 
+        // 录音功能
+        // navigator.mediaDevices.getUserMedia({audio:true}) + MediaRecorder（优先 audio/ogg;codecs=opus），chunks 拼成 Blob 放 FormData 上传
         try {
           closeActiveStream();
           // 语音通道与文字通道解耦，不关闭 TTS WS，方便连续对话复用 session
@@ -562,6 +578,7 @@
             ? new MediaRecorder(activeRecordStream, { mimeType: preferredMimeType })
             : new MediaRecorder(activeRecordStream);
 
+          // 录制过程中，将可用的录音数据块推送到 chunks 数组中
           mediaRecorder.ondataavailable = (event) => {
             if (event.data && event.data.size > 0) {
               chunks.push(event.data);
@@ -578,7 +595,7 @@
               }
 
               setStatus("语音识别中...");
-              const recognized = (await uploadAndRecognize(blob)).trim();
+              const recognized = (await uploadAndRecognize(blob)).trim(); // 调用 Asr
               promptInput.value = recognized;
 
               if (!recognized) {

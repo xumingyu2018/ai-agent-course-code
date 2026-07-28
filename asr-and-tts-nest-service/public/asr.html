@@ -55,13 +55,16 @@
 
       startBtn.addEventListener("click", async () => {
         try {
+          // navigator.mediaDevices.getUserMedia() 方法用于获取用户的媒体输入设备（如麦克风、摄像头等）的访问权限，并返回一个 Promise 对象，解析为一个 MediaStream 对象。
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
           chunks = [];
           const preferredMimeType = "audio/ogg;codecs=opus";
+          // MediaRecorder 对象用于将媒体流（MediaStream）录制为音频或视频数据。它提供了 start()、stop()、pause()、resume() 等方法来控制录制过程，并通过事件（如 dataavailable、stop 等）来获取录制的数据。
           mediaRecorder = MediaRecorder.isTypeSupported(preferredMimeType)
             ? new MediaRecorder(stream, { mimeType: preferredMimeType })
             : new MediaRecorder(stream);
 
+          // ondataavailable 事件在录制过程中，当有可用的数据时触发。它会返回一个包含录制数据的 Blob 对象，可以通过 event.data 获取。
           mediaRecorder.ondataavailable = (event) => {
             if (event.data && event.data.size > 0) {
               chunks.push(event.data);
@@ -71,6 +74,7 @@
           mediaRecorder.onstop = async () => {
             setStatus("录音结束，正在上传...");
             try {
+              // 将录制的音频数据块（chunks）合并为一个 Blob 二进制数据
               const blob = new Blob(chunks, {
                 type: mediaRecorder.mimeType || "audio/webm",
               });

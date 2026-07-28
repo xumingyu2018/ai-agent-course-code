@@ -28,7 +28,7 @@ const AsrClient = tencentcloud.asr.v20190614.Client;
           },
         });
       },
-      inject: [ConfigService],
+      inject: [ConfigService], // 注入 ConfigService 以获取环境变量
     },
   ],
   controllers: [SpeechController],

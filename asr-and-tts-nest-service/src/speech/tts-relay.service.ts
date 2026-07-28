@@ -14,6 +14,7 @@ type ClientSession = {
   closed: boolean;
 };
 
+// 流式语音功能，负责将 TTS 请求转发到腾讯云，并将返回的音频流转发给客户端
 @Injectable()
 export class TtsRelayService implements OnModuleDestroy {
   private readonly logger = new Logger(TtsRelayService.name);
@@ -59,12 +60,14 @@ export class TtsRelayService implements OnModuleDestroy {
     this.closeSession(sessionId, 'client disconnected');
   }
 
+  // 用 OnEvent 监听下 AI_TTS_STREAM_EVENT 这个事件名
   @OnEvent(AI_TTS_STREAM_EVENT)
   handleAiStreamEvent(event: AiTtsStreamEvent): void {
     const session = this.sessions.get(event.sessionId);
     if (!session) return;
 
     switch (event.type) {
+      // 如果收到的是 start 事件，就和腾讯云的 tts 服务建立连接，然后发送一个 tts_started 的消息给前端，告诉前端可以开始播放语音了
       case 'start': {
         this.ensureTencentConnection(session);
         this.sendClientJson(session.clientWs, {
@@ -74,9 +77,12 @@ export class TtsRelayService implements OnModuleDestroy {
         });
         break;
       }
+      // 如果收到的是 chunk 事件，就把这段文本发送给 tts 服务
       case 'chunk': {
         const chunk = event.chunk?.trim();
         if (!chunk) return;
+        // 腾讯云已 ready → 直接发 ACTION_SYNTHESIS
+        // 腾讯云未 ready → 先缓存到 pendingChunks，等 ready 后再发
         if (!session.ready || !session.tencentWs || session.tencentWs.readyState !== WebSocket.OPEN) {
           session.pendingChunks.push(chunk);
           return;
@@ -119,6 +125,7 @@ export class TtsRelayService implements OnModuleDestroy {
       return;
     }
 
+    // 用这个 url 连接上腾讯云的 tts 的 ws 服务
     const url = this.buildTencentTtsWsUrl(session.sessionId);
     const tencentWs = new WebSocket(url);
     session.tencentWs = tencentWs;
@@ -128,8 +135,10 @@ export class TtsRelayService implements OnModuleDestroy {
       this.logger.log(`Tencent TTS ws opened: ${session.sessionId}`);
     });
 
+    // 监听腾讯云的 tts ws 服务返回的消息，可能是二进制音频数据，也可能是 json 消息，json 消息是用来告诉我们 tts 服务的状态，比如 ready、error、final 等
     tencentWs.on('message', (data, isBinary) => {
       if (session.closed) return;
+      // 如果传过来的是二进制，就直接通过 websocket 发送给前端
       if (isBinary) {
         if (session.clientWs.readyState === WebSocket.OPEN) {
           session.clientWs.send(data, { binary: true });
@@ -137,6 +146,7 @@ export class TtsRelayService implements OnModuleDestroy {
         return;
       }
 
+      // 非二进制就作为 json 来处理，用 JSON.parse 处理下，根据不同的类型，给前端返回不同的 json，比如 tts_error、tts_final 等
       const raw = data.toString();
       let msg: Record<string, unknown> | undefined;
       try {
@@ -178,6 +188,7 @@ export class TtsRelayService implements OnModuleDestroy {
     });
   }
 
+  // 把 pendingChunks 里的文本都发送给腾讯云的 tts 服务
   private flushPendingChunks(session: ClientSession): void {
     if (!session.ready || !session.tencentWs || session.tencentWs.readyState !== WebSocket.OPEN) {
       return;
@@ -195,6 +206,7 @@ export class TtsRelayService implements OnModuleDestroy {
       return;
     }
 
+    // 发送给腾讯云的 tts 服务发送合成语音指令，action为"ACTION_SYNTHESIS"
     session.tencentWs.send(
       JSON.stringify({
         session_id: session.sessionId,
@@ -226,6 +238,7 @@ export class TtsRelayService implements OnModuleDestroy {
     clientWs.send(JSON.stringify(payload));
   }
 
+  // 连接腾讯云的 streaming tts 接口来做语音合成，建立 WebSocket 连接时需要签名，签名算法参考腾讯云官方文档
   private buildTencentTtsWsUrl(sessionId: string): string {
     const now = Math.floor(Date.now() / 1000);
     const params: Record<string, string | number> = {

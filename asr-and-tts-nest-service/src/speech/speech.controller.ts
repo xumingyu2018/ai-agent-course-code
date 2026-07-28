@@ -13,8 +13,10 @@ export class SpeechController {
   constructor(private readonly speechService: SpeechService) {}
 
   @Post('asr')
+  // UseInterceptors(FileInterceptor('audio')) 表示使用文件拦截器来处理上传的音频文件，取表单的 audio 字段
   @UseInterceptors(FileInterceptor('audio'))
   async recognize(
+    // @UploadedFile()的作用是将上传的文件注入到 file 参数中，作为参数传入handler
     @UploadedFile()
     file?: {
       buffer: Buffer;

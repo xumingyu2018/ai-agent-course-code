@@ -24,11 +24,13 @@ const attempt = (state) => {
     message: ok ? `第 ${tries} 次成功` : `第 ${tries} 次失败，继续重试`,
   };
 };
-MemorySaver
+// MemorySaver
 
+// 节点之间通过 state 传递数据进行通信，StateGraph 会根据 Annotation 的 reducer 合并 state
 const graph = new StateGraph(StateAnnotation)
   .addNode("attempt", attempt)
   .addEdge(START, "attempt")
+  // 用 addConditionalEdges 判断条件满足就到 END 节点，否则重新路由到之前的节点进行 retry 循环
   .addConditionalEdges("attempt", (state) => (state.ok ? "done" : "retry"), {
     retry: "attempt",
     done: END,

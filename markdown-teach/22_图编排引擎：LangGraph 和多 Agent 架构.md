@@ -765,7 +765,7 @@ returnJSON.stringify({
 
 回头看下这张图：
 
-@@IMG:|https://mmbiz.qpic.cn/mmbiz_png/NMByQQfVwfcPmWVTc3X5LiaRetlQVEEe6EpJORakGyo5FKHtnzr6UGEyWDLW7hiaQau2YwjZO5mT1XMmlwpFqwjSY0hhoPfuWZ1iciaHVaia5XtI/640?wx_fmt=png&from=appmsg@@
+![](https://mmbiz.qpic.cn/mmbiz_png/NMByQQfVwfcPmWVTc3X5LiaRetlQVEEe6EpJORakGyo5FKHtnzr6UGEyWDLW7hiaQau2YwjZO5mT1XMmlwpFqwjSY0hhoPfuWZ1iciaHVaia5XtI/640?wx_fmt=png&from=appmsg@@)
 
 我们学 LangChain 的组件层花了比较多时间，学编排层的 LCEL、LangGraph 都是很快的，一两节搞定。
 

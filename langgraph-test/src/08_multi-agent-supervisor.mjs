@@ -16,6 +16,7 @@ const model = new ChatOpenAI({
   },
 });
 
+// 定义两个工具：一个查天气，一个查城市小知识
 const lookupWeatherTool = tool(
   async ({ city }) => lookupWeather(city),
   {
@@ -57,6 +58,7 @@ const triviaAgent = createAgent({
 });
 
 /**
+ * 多 Agent "主管 - 工人"模式，createSupervisor 创建主管 Agent
  * Supervisor：根据用户问的是「天气」还是「小知识」切换子代理。
  * （真实业务里还可以再加更多子代理，思路一样。）
  */
@@ -64,15 +66,14 @@ const workflow = createSupervisor({
   agents: [weatherAgent.graph, triviaAgent.graph],
   llm: model,
   prompt: `你是调度员，只负责选人，不要自己报气温、也不要自己讲城市百科。
-
-- 问天气、气温、下不下雨、空气 → 用 weather_agent
-- 问小知识、名胜、历史、一句介绍 → 用 trivia_agent
-`,
+    - 问天气、气温、下不下雨、空气 → 用 weather_agent
+    - 问小知识、名胜、历史、一句介绍 → 用 trivia_agent
+  `,
 });
 
 const app = workflow.compile();
 
-const drawable = await app.getGraphAsync();
+const drawable = await app.getGraphAsync(); // 获取可视化的图对象
 console.log(drawable.drawMermaid({ withStyles: true }));
 
 const input = {
@@ -83,6 +84,9 @@ const input = {
 
 const nodePath = [];
 let finalState = null;
+// 用 stream 可以拿到整个图运行过程的状态
+// updates 是增量模式，就是过滤出这个节点增量修改的 state 来, values 是全量模式，就是这个节点的完整 state
+// 这里用 updates 模式拿到经过的节点的名字，最后的回复用 values 模式拿
 const stream = await app.stream(input, { streamMode: ["updates", "values"] });
 for await (const event of stream) {
   const [mode, payload] = event;

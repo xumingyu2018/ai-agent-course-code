@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 
+// 相当于定义一个图的结构体，指定默认值（default）和合并逻辑（reducer）
 const StateAnnotation = Annotation.Root({
   text: Annotation({
     reducer: (_prev, next) => next,
@@ -11,6 +12,7 @@ const StateAnnotation = Annotation.Root({
 const step1 = (state) => ({ text: `${state.text} -> step1` });
 const step2 = (state) => ({ text: `${state.text} -> step2` });
 
+// 添加两个节点（node），加上固定的 START、END 节点，然后用边（edge）连起来
 const graph = new StateGraph(StateAnnotation)
   .addNode("step1", step1)
   .addNode("step2", step2)

@@ -28,6 +28,9 @@ const model = new ChatOpenAI({
   },
 });
 
+// 这里为什么不用写new StateGraph了？
+// 因为 langchain 预置了一个 createAgent()，它会帮你把 StateGraph、ToolNode、toolsCondition 都封装好，直接返回一个 agent 对象
+// 直接用 createAgent 来跑 agent loop
 const agent = createAgent({
   model,
   tools: [getProductStock],

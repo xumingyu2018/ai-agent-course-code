@@ -1,6 +1,9 @@
 import "dotenv/config";
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 
+// query: 用户输入的文本
+// route: 分支路由，chat 或 math
+// answer: 输出的结果文本
 const StateAnnotation = Annotation.Root({
   query: Annotation({
     reducer: (_prev, next) => next,
@@ -16,11 +19,13 @@ const StateAnnotation = Annotation.Root({
   }),
 });
 
+// 判断文本如果有+-*/字符就走 math 分支，否则走 chat 分支
 const router = (state) => {
   const isMath = /[+\-*/]/.test(state.query);
   return { route: isMath ? "math" : "chat" };
 };
 
+// eval 计算表达式，返回结果
 const mathNode = (state) => {
   try {
     return { answer: String(eval(state.query)) };
@@ -36,6 +41,7 @@ const graph = new StateGraph(StateAnnotation)
   .addNode("math", mathNode)
   .addNode("chat", chatNode)
   .addEdge(START, "router")
+  // 添加分支
   .addConditionalEdges("router", (state) => state.route, {
     math: "math",
     chat: "chat",

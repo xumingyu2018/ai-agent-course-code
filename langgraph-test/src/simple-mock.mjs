@@ -32,7 +32,7 @@ export function lookupWeather(city) {
   return JSON.stringify({ city: c, ...w });
 }
 
-/** 查与某城市相关的一句小知识（模拟） */
+/** 查询某城市相关的一句小知识（模拟） */
 export function lookupCityTrivia(city) {
   const c = normCity(city);
   const line = triviaTable[c];

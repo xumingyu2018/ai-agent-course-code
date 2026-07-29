@@ -13,6 +13,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import { getProductBySku } from "./inventory-mock.mjs";
 
+// 定义一个 tool 工具，按 SKU 查商品名与库存
 const getProductStock = tool(
   async ({ sku }) => getProductBySku(sku),
   {
@@ -39,12 +40,15 @@ async function agent(state) {
   return { messages: response };
 }
 
+// 使用 prebuilt 预置的 ToolNode 和 toolsCondition，自动处理 agent 调用工具的逻辑
 const toolNode = new ToolNode(tools);
 
+// StateGraph 后面可以用 createAgent() 封装成一个 agent 对象，直接调用 invoke() 就行了
 const graph = new StateGraph(MessagesAnnotation)
   .addNode("agent", agent)
   .addNode("tools", toolNode)
   .addEdge(START, "agent")
+  // 如果 agent 认为需要调用工具，就去 tools 节点，否则直接结束，toolsCondition 是 langgraph 预置的一个条件函数，判断 agent 的输出里是否有 tool_call
   .addConditionalEdges("agent", toolsCondition, ["tools", END])
   .addEdge("tools", "agent")
   .compile();

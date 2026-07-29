@@ -27,6 +27,7 @@ const showTransfer = () => ({
 
 /** 停在这里等人输入；resume 的值会写进 userInput */
 const waitConfirm = (state) => {
+  // interrupt() 会让图暂停，等待用户输入
   const text = interrupt({
     hint: "终端里输入「确认」或备注后回车，图才会继续",
     actionSummary: state.actionSummary,
@@ -52,8 +53,9 @@ const config = { configurable: { thread_id: "interrupt-demo" } };
 const paused = await graph.invoke({}, config);
 console.log("\n待你确认：", paused.__interrupt__?.[0]?.value);
 
+// 这段代码是为了在终端里让用户输入确认信息，输入后图会继续执行，这里用了 nodejs 的 readline 包读取键盘输入
 const rl = createInterface({ input: process.stdin, output: process.stdout });
-const line = (await rl.question("> ")).trim();
+const line = (await rl.question("> ")).trim(); // rl.question("> ") 会在终端里显示 > 提示用户输入，用户输入后回车，返回输入的内容
 await rl.close();
 
 if (!line) {
@@ -61,5 +63,6 @@ if (!line) {
   process.exit(1);
 }
 
+// 等待用户输入之后再次 invoke，传入 new Command({resume: 'xxx'})
 const done = await graph.invoke(new Command({ resume: line }), config);
 console.log("结果：", done);

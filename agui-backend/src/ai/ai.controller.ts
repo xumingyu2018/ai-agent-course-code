@@ -23,6 +23,8 @@ export class AiController {
     }
 
     const stream = await this.aiService.stream(body.messages);
+    // pipeUIMessageStreamToResponse 会把 stream 转成 SSE 的 Data Stream Protocol 的协议数据（data: {"type":"text-delta",...} 这样的 SSE 帧）返回给前端
+    // 这里没有用 Nest 的 @Sse() 装饰器 —— 因为 @Sse() 走 RxJS Observable + 自定义事件格式，而这里要输出 AI SDK 的专有协议格式，直接 pipe 更合适
     pipeUIMessageStreamToResponse({ response: res, stream });
   }
 }

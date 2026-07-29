@@ -372,7 +372,7 @@ pnpm install @ai-sdk/react ai
 
 核心逻辑是这个：
 
-@@IMG:|https://mmbiz.qpic.cn/mmbiz_png/NMByQQfVwffZGExUbF4ZhUh3yltQnZcv74IViaSvD6Yak5ZkGpRCsgLMsKGBP99EKt8lB0bgaZW5bHYofxXeVh403lkWdiaEz1wtp2Zw0aJCY/640?wx_fmt=png&from=appmsg@@
+![](https://mmbiz.qpic.cn/mmbiz_png/NMByQQfVwffZGExUbF4ZhUh3yltQnZcv74IViaSvD6Yak5ZkGpRCsgLMsKGBP99EKt8lB0bgaZW5bHYofxXeVh403lkWdiaEz1wtp2Zw0aJCY/640?wx_fmt=png&from=appmsg)
 
 用 useChat 连接后端的 SSE 接口，连接方式用 DefaultChatTransport
 

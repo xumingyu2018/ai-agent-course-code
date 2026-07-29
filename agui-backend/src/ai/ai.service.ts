@@ -13,6 +13,7 @@ export class AiService {
     @Inject('SEND_MAIL_TOOL') private readonly sendMailTool: any,
     @Inject('CHAT_MODEL') model: ChatOpenAI
   ) {
+    // 创建一个 LangChain 代理，内置 ReAct 式 Agent 循环
     this.agent = createAgent({
         model,
         tools: [this.webSearchTool, this.sendMailTool],
@@ -22,7 +23,10 @@ export class AiService {
   }
 
   async stream(messages: UIMessage[]) {
+    // 把传入的 ai sdk 的 messages 转成 langchain 的 BaseMessage 传给 agent
     const lcMessages = await toBaseMessages(messages);
+    // 再把返回的 stream 转成 ai ask 的 ui message stream 返回
+    // 这样返回的流式内容就是 SSE 的 Data Stream Protocol 的协议数据了。
     const lgStream = await this.agent.stream(
       { messages: lcMessages },
       {

@@ -10,6 +10,7 @@ const API_BASE = 'http://localhost:3000'
 export default function App() {
   const chatUrl = `${API_BASE}/ai/chat`
 
+  // DefaultChatTransport 是 ai-sdk 提供的默认聊天传输器，内部使用 fetch 发送 POST 请求到后端 SSE 接口，返回流式的 AI 回答文本
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
@@ -18,6 +19,7 @@ export default function App() {
     [chatUrl],
   )
 
+  // 用 useChat 连接后端的 SSE 接口，连接方式用 DefaultChatTransport，返回的 messages 是当前的聊天消息列表，sendMessage 用于发送用户消息，status 是当前聊天状态，stop 用于停止当前的流式回答，error 是当前的错误信息，clearError 用于清除错误信息
   const { messages, sendMessage, status, stop, error, clearError } = useChat<UIMessage>({
     transport,
   })
@@ -47,6 +49,8 @@ export default function App() {
             输入问题开始对话
           </p>
         )}
+        {/* messages 数据结构为 { id: string; role: 'user' | 'assistant'; parts: MessagePart[] }[] */}
+        {/* MessagePart 是用来表示消息的不同部分，可以是文本、图片等 */}
         {messages.map((message) => {
           const textPartIndices = message.parts
             .map((p, i) => (p.type === 'text' ? i : -1))

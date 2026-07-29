@@ -218,6 +218,7 @@ function getPendingHint(
   return undefined
 }
 
+// 发送邮件的 tool 面板，展示邮件发送的相关信息
 function SendMailToolPanel({
   input,
   output,
@@ -410,10 +411,12 @@ export type MessagePartProps = {
   textStreamActive?: boolean
 }
 
+// ai 包提供了 isToolUIPart、getToolName 的 api，可以用它来判断当前 part 是不是 tool call
 export function MessagePart({
   part,
   textStreamActive = false,
 }: MessagePartProps) {
+  // 如果不是，就是渲染文本，如果是就是渲染对应的 tool 的组件。
   if (part.type === 'text') {
     return (
       <StreamdownText isStreaming={textStreamActive}>{part.text}</StreamdownText>

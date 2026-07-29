@@ -20,6 +20,9 @@ export function StreamdownText({
 }: StreamdownTextProps) {
   return (
     <div className="chat-streamdown">
+      {/* streamdown 流式 markdown 文本组件 */}
+      {/* isStreaming 为 true 时，表示当前文本正在流式输出，mode 为 streaming 时表示当前模式为流式，parseIncompleteMarkdown 表示是否解析不完整的 Markdown */}
+      {/* shikiTheme 用于设置代码高亮主题，plugin 用于扩展功能（mermaid 为扩展流程图能力，codePlugin 为扩展代码高亮能力） */}
       <Streamdown
         mode="streaming"
         isAnimating={isStreaming}

@@ -89,13 +89,13 @@ import { MailerService } from '@nestjs-modules/mailer';
               const formatted = webpages
                 .map(
                   (page: any, idx: number) =>
-                    `引用: ${idx + 1}
-    标题: ${page.name}
-    URL: ${page.url}
-    摘要: ${page.summary}
-    网站名称: ${page.siteName}
-    网站图标: ${page.siteIcon}
-    发布时间: ${page.dateLastCrawled}`,
+                    ` 引用: ${idx + 1}
+                      标题: ${page.name}
+                      URL: ${page.url}
+                      摘要: ${page.summary}
+                      网站名称: ${page.siteName}
+                      网站图标: ${page.siteIcon}
+                      发布时间: ${page.dateLastCrawled}`,
                 )
                 .join('\n\n');
     
@@ -133,8 +133,7 @@ import { MailerService } from '@nestjs-modules/mailer';
             text?: string;
             html?: string;
           }) => {
-            const fallbackFrom =
-              configService.get<string>('MAIL_FROM')
+            const fallbackFrom = configService.get<string>('MAIL_FROM')
     
             await mailerService.sendMail({
               to,

@@ -1,3 +1,4 @@
+# 多阶段构建 Dockerfile，构建阶段和运行阶段分开，最终镜像更小
 # 构建阶段：需要 devDependencies（含 @nestjs/cli、typescript）才能 nest build
 FROM node:24.15-alpine AS builder
 WORKDIR /app

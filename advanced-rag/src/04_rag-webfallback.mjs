@@ -4,6 +4,7 @@ import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { Milvus } from "@langchain/community/vectorstores/milvus";
 
+// 优化3：本地知识库没有的内容，不会主动去网络搜索补充，容易编造答案
 const llm = new ChatOpenAI({
   temperature: 0,
   model: "qwen-plus",
@@ -32,6 +33,7 @@ const GraphState = Annotation.Root({
 
 let vectorStore;
 
+// 这个函数用于从 Milvus 向量数据库中检索与问题相关的内容，返回包含相似度分数和文档内容的数组
 async function retrieveRelevantContent(query, k) {
   try {
     const docsWithScores = await vectorStore.similaritySearchWithScore(query, k);
@@ -58,14 +60,14 @@ const routeQuestionNode = async (state) => {
   console.log("---ROUTE_QUESTION---");
   const router = llm.withStructuredOutput(RouteSchema);
   const route = await router.invoke(`
-你是问答路由器。请判断用户问题是否需要外部检索。
+    你是问答路由器。请判断用户问题是否需要外部检索。
 
-规则：
-- simple: 常识问答、简短定义、无需特定小说细节即可回答。
-- complex: 需要《天龙八部》具体情节、人物关系、章节事实、原文细节或证据支持。
+    规则：
+    - simple: 常识问答、简短定义、无需特定小说细节即可回答。
+    - complex: 需要《天龙八部》具体情节、人物关系、章节事实、原文细节或证据支持。
 
-用户问题：${state.question}
-`);
+    用户问题：${state.question}
+  `);
   console.log(`路由策略: ${route.strategy} (${route.reason})`);
   return {
     strategy: route.strategy,
@@ -83,9 +85,8 @@ const directAnswerNode = async (state) => {
   process.stdout.write("\n【AI 回答（流式）】\n");
   let generation = "";
   const stream = await llm.stream(`你是一个中文问答助手，请直接简洁回答问题。
-
-问题：${state.question}
-`);
+    问题：${state.question}
+  `);
   for await (const chunk of stream) {
     const text = typeof chunk.content === "string" ? chunk.content : "";
     if (!text) continue;
@@ -96,6 +97,7 @@ const directAnswerNode = async (state) => {
   return { generation };
 };
 
+// retrieveLocalNode：负责检索本地相关内容节点，从 Milvus 向量数据库中检索与问题相关的内容，返回检索结果和拼接后的上下文
 const retrieveLocalNode = async (state) => {
   console.log("---LOCAL_RETRIEVE---");
   const retrievedDocs = await retrieveRelevantContent(state.question, state.k);
@@ -114,25 +116,26 @@ const EvaluateSchema = z.object({
   web_query: z.string().optional(),
 });
 
+// evaluateNode：负责评估当前上下文是否足够回答用户问题，如果不够，给出缺失信息点和联网搜索建议
 const evaluateNode = async (state) => {
   const hasWeb = Boolean(state.webContext && String(state.webContext).trim());
   console.log(hasWeb ? "---EVALUATE_CONTEXT_WITH_WEB---" : "---EVALUATE_LOCAL_CONTEXT---");
   const evaluator = llm.withStructuredOutput(EvaluateSchema);
   const out = await evaluator.invoke(`你是信息充分性评估器。判断当前上下文是否足以回答用户问题。
 
-用户问题：${state.question}
+    用户问题：${state.question}
 
-已检索上下文（来自本地知识库）：
-${state.localContext || "（空）"}
+    已检索上下文（来自本地知识库）：
+    ${state.localContext || "（空）"}
 
-${hasWeb ? `联网搜索结果：\n${state.webContext || "（空）"}\n` : ""}
+    ${hasWeb ? `联网搜索结果：\n${state.webContext || "（空）"}\n` : ""}
 
-输出字段：
-- enough: 是否足够回答（true/false）
-- missing: 若不够，列出缺失信息点（最多 6 条）
-- reason: 简短原因
-${hasWeb ? "" : "- web_query: 若不够，给出一个适合联网搜索的中文查询句（完整句，不用代词；为空也可）"}
-`);
+    输出字段：
+    - enough: 是否足够回答（true/false）
+    - missing: 若不够，列出缺失信息点（最多 6 条）
+    - reason: 简短原因
+    ${hasWeb ? "" : "- web_query: 若不够，给出一个适合联网搜索的中文查询句（完整句，不用代词；为空也可）"}
+  `);
 
   console.log(`${hasWeb ? "二次评估" : "评估"}: enough=${out.enough} (${out.reason})`);
   if (!out.enough && out.missing?.length) {
@@ -144,7 +147,7 @@ ${hasWeb ? "" : "- web_query: 若不够，给出一个适合联网搜索的中�
 };
 
 /**
- * Call Bocha Web Search API
+ * 调用 Bocha 网络搜索 API，返回搜索结果的摘要信息
  */
 async function bochaWebSearch(query, count) {
   const apiKey = process.env.BOCHA_API_KEY;
@@ -197,16 +200,17 @@ async function bochaWebSearch(query, count) {
   return webpages
     .map(
       (page, idx) => `引用: ${idx + 1}
-标题: ${page.name}
-URL: ${page.url}
-摘要: ${page.summary}
-网站名称: ${page.siteName}
-网站图标: ${page.siteIcon}
-发布时间: ${page.dateLastCrawled}`,
+      标题: ${page.name}
+      URL: ${page.url}
+      摘要: ${page.summary}
+      网站名称: ${page.siteName}
+      网站图标: ${page.siteIcon}
+      发布时间: ${page.dateLastCrawled}`,
     )
     .join("\n\n");
 }
 
+// webSearchNode：负责联网搜索节点，调用 Bocha Web Search API 获取搜索结果摘要
 const webSearchNode = async (state) => {
   console.log("---WEB_SEARCH---");
   const parsed = (() => {
@@ -216,6 +220,7 @@ const webSearchNode = async (state) => {
       return {};
     }
   })();
+  // 如果 evaluateNode 评估结果判断信息不够的话，会生成一个 web_query，就用它作为搜索查询；否则用原始问题
   const query = (parsed.web_query ?? "").trim() || state.question;
   console.log(`联网查询: ${query}`);
   const webContext = await bochaWebSearch(query, 8);
@@ -230,17 +235,18 @@ const generateNode = async (state) => {
   let generation = "";
   const stream = await llm.stream(`你是一个严谨的中文问答助手。优先依据上下文作答，不要编造。
 
-上下文（本地知识库 + 可选联网补充）：
-${context || "（空）"}
+    上下文（本地知识库 + 可选联网补充）：
+    ${context || "（空）"}
 
-用户问题：${state.question}
+    用户问题：${state.question}
 
-回答要求：
-1. 如果上下文足够，给出清晰、可核对的回答；需要时引用“引用: n / URL”或小说片段来支撑。
-2. 如果上下文仍不足以确定关键事实，明确说明“不确定/无法从上下文确认”，并说明缺失点。
-3. 不要输出表情符号。
+    回答要求：
+    1. 如果上下文足够，给出清晰、可核对的回答；需要时引用“引用: n / URL”或小说片段来支撑。
+    2. 如果上下文仍不足以确定关键事实，明确说明“不确定/无法从上下文确认”，并说明缺失点。
+    3. 不要输出表情符号。
 
-回答：`);
+    回答：`
+  );
   for await (const chunk of stream) {
     const text = typeof chunk.content === "string" ? chunk.content : "";
     if (!text) continue;

@@ -4,6 +4,7 @@ import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { Milvus } from "@langchain/community/vectorstores/milvus";
 
+// 优化1：让模型根据问题类型选择检索策略，简单问题直接回答，复杂问题才走完整检索（先检索向量数据库再回答）
 const llm = new ChatOpenAI({
   temperature: 0,
   model: "qwen-plus",
@@ -55,17 +56,19 @@ const RouteSchema = z.object({
   reason: z.string(),
 });
 
+// 路由节点：根据用户问题判断是 simple 还是 complex，simple 就直接回答，complex 就去检索相关内容
 const routeQuestionNode = async (state) => {
   console.log("---ROUTE_QUESTION---");
+  // 路由节点用 withStructuredOutput 来控制结构化输出
   const router = llm.withStructuredOutput(RouteSchema);
   const route = await router.invoke(`
-你是问答路由器。请判断用户问题是否需要外部检索。
+  你是问答路由器。请判断用户问题是否需要外部检索。
 
-规则：
-- simple: 常识问答、简短定义、无需特定小说细节即可回答。
-- complex: 需要《天龙八部》具体情节、人物关系、章节事实、原文细节或证据支持。
+  规则：
+  - simple: 常识问答、简短定义、无需特定小说细节即可回答。
+  - complex: 需要《天龙八部》具体情节、人物关系、章节事实、原文细节或证据支持。
 
-用户问题：${state.question}
+  用户问题：${state.question}
 `);
 
   console.log(`路由策略: ${route.strategy} (${route.reason})`);
@@ -77,6 +80,7 @@ const routeQuestionNode = async (state) => {
   };
 };
 
+// 检索节点：根据用户问题去 Milvus 向量数据库检索相关内容，返回检索结果
 const retrieveNode = async (state) => {
   console.log("---RETRIEVE---");
   const documents = await retrieveRelevantContent(state.question, state.k);
@@ -102,13 +106,13 @@ const retrieveNode = async (state) => {
   };
 };
 
+// 直接回答节点：如果路由策略是 simple，就直接调用大模型生成回答
 const directAnswerNode = async (state) => {
   console.log("---DIRECT_ANSWER---");
   process.stdout.write("\n【AI 回答（流式）】\n");
   let generation = "";
   const stream = await llm.stream(`你是一个中文问答助手，请直接简洁回答问题。
-
-问题：${state.question}
+  问题：${state.question}
 `);
   for await (const chunk of stream) {
     const text = typeof chunk.content === "string" ? chunk.content : "";
@@ -127,33 +131,33 @@ const directAnswerNode = async (state) => {
   };
 };
 
+// RAG 生成节点：如果路由策略是 complex，就把检索到的文档放到 prompt 里，调用大模型生成回答
 const ragGenerateNode = async (state) => {
   console.log("---RAG_GENERATE---");
   const context = state.documents
     .map(
       (item, i) =>
         `[片段 ${i + 1}]
-章节: 第 ${item.chapter_num} 章
-内容: ${item.content}`,
-    )
-    .join("\n\n━━━━━\n\n");
-  process.stdout.write("\n【AI 回答（流式）】\n");
-  let generation = "";
-  const stream = await llm.stream(`你是一个专业的《天龙八部》小说助手。基于小说内容回答问题，用准确、详细的语言。
+        章节: 第 ${item.chapter_num} 章
+        内容: ${item.content}`,
+    ).join("\n\n━━━━━\n\n");
+    process.stdout.write("\n【AI 回答（流式）】\n");
+    let generation = "";
+    const stream = await llm.stream(`你是一个专业的《天龙八部》小说助手。基于小说内容回答问题，用准确、详细的语言。
+      请根据以下《天龙八部》小说片段内容回答问题：
+      ${context || "（未检索到相关内容）"}
 
-请根据以下《天龙八部》小说片段内容回答问题：
-${context || "（未检索到相关内容）"}
+      用户问题: ${state.question}
 
-用户问题: ${state.question}
+      回答要求：
+      1. 如果片段中有相关信息，请结合小说内容给出详细、准确的回答
+      2. 可以综合多个片段的内容，提供完整的答案
+      3. 如果片段中没有相关信息，请如实告知用户
+      4. 回答要准确，符合小说的情节和人物设定
+      5. 可以引用原文内容来支持你的回答
 
-回答要求：
-1. 如果片段中有相关信息，请结合小说内容给出详细、准确的回答
-2. 可以综合多个片段的内容，提供完整的答案
-3. 如果片段中没有相关信息，请如实告知用户
-4. 回答要准确，符合小说的情节和人物设定
-5. 可以引用原文内容来支持你的回答
-
-AI 助手的回答:`);
+      AI 助手的回答:`
+    );
   for await (const chunk of stream) {
     const text = typeof chunk.content === "string" ? chunk.content : "";
     if (!text) continue;
@@ -172,6 +176,7 @@ AI 助手的回答:`);
   };
 };
 
+// decideNext：根据路由策略决定下一步节点，如果策略是 simple 就直接回答，否则就去检索相关内容
 function decideNext(state) {
   return state.strategy === "simple" ? "direct_answer" : "retrieve";
 }
@@ -182,6 +187,8 @@ const graph = new StateGraph(GraphState)
   .addNode("retrieve", retrieveNode)
   .addNode("rag_generate", ragGenerateNode)
   .addEdge(START, "route_question")
+  // 根据问题返回不同的类型，然后用 conditional edge 转到不同节点来处理
+  // addConditionalEdges 第一个参数是当前节点，第二个参数是一个函数，返回下一个节点的名称，第三个参数是一个对象，定义了可能的下一个节点名称和对应的节点
   .addConditionalEdges("route_question", decideNext, {
     direct_answer: "direct_answer",
     retrieve: "retrieve",
@@ -192,7 +199,7 @@ const graph = new StateGraph(GraphState)
   .compile();
 
 async function main() {
-  const question = "雁门关事件的主谋，他的儿子最终结局是什么？";
+  const question = "段誉遇到的第一个神仙姐姐画像，是谁的弟子？？";
   const k = 5;
 
   // 导出为 Mermaid：可复制到 https://mermaid.live 或 Markdown 的 ```mermaid 代码块

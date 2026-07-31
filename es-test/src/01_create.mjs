@@ -6,6 +6,7 @@ const client = new Client({
 
 const INDEX_NAME = 'travel_journal';
 
+// 1. 用 @elastic/elasticsearch 这个包创建索引并设置中文分词器
 async function createIndex() {
   const exists = await client.indices.exists({ index: INDEX_NAME });
   if (exists) {
@@ -13,6 +14,7 @@ async function createIndex() {
     return;
   }
 
+  // es中使用 ik_max_word 作为文本插入分词器，ik_smart 作为搜索分词器
   await client.indices.create({
     index: INDEX_NAME,
     mappings: {
@@ -31,6 +33,7 @@ async function createIndex() {
   console.log(`✅ 索引创建成功: ${INDEX_NAME}`);
 }
 
+// 2. 批量插入初始化数据
 async function seedData() {
   const now = new Date().toISOString();
   const docs = [
@@ -63,11 +66,14 @@ async function seedData() {
     }
   ];
 
+  // 使用 docs.flatMap 将每个文档转换为批量操作格式
   const operations = docs.flatMap((doc) => [{ index: { _index: INDEX_NAME } }, doc]);
+  // bulk API 批量插入数据
   await client.bulk({ refresh: true, operations });
   console.log(`✅ 初始化数据完成，共 ${docs.length} 条`);
 }
 
+// 运行创建索引和初始化数据
 async function run() {
   await createIndex();
   await seedData();

@@ -165,7 +165,7 @@ async function seedElasticsearch(indexName, rows) {
     });
     console.log('✓ 索引创建成功');
 
-    const now = new Date().toISOString();
+    const now = new Date().toISOString(); // toISOString() 方法返回一个 ISO 格式的字符串
     console.log(`写入 ${rows.length} 条文档...`);
     await client.bulk({
       refresh: true,
@@ -276,6 +276,7 @@ async function seedMilvus(collectionName, rows, emb) {
       [EMBEDDING]: vectors[i],
     }));
 
+    // 插入 Milvus 数据，flushSync 确保数据写入完成后再继续
     const insertResult = await milvusClient.insert({
       collection_name: collectionName,
       data: insertData,

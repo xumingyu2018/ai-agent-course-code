@@ -1,7 +1,7 @@
 services:
   # Elasticsearch 8.17.0 + IK 中文分词（内置到镜像）
   es:
-    build: ./elasticsearch       # 从本地 Dockerfile 构建镜像（自带IK）
+    build: ./elasticsearch       # 从本地 Dockerfile 构建镜像（自带IK），es 的容器里，执行命令安装 ik 分词器插件
     container_name: es-dev
     ports:
       - "9200:9200"               # ES 访问端口

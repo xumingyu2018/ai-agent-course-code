@@ -1,10 +1,11 @@
 import "dotenv/config";
 import { Document } from "@langchain/core/documents";
-import { DashScopeRerank } from "./dashscope-rerank.mjs";
+import { DashScopeRerank } from "./03_dashscope-rerank.mjs";
 
 async function main() {
     const apiKey = process.env.OPENAI_API_KEY;
 
+    // 创建 DashScopeRerank 实例，这个实例可以用来对文档列表进行重排
     const compressor = new DashScopeRerank({ apiKey, topN: 3 });
 
     const query = "什么是文本排序模型";
@@ -21,6 +22,7 @@ async function main() {
         }),
     ];
 
+    // 调用 compressor.compressDocuments 方法对文档列表进行重排，返回重排后的文档列表，第一个参数是文档列表，第二个参数是查询语句
     const ranked = await compressor.compressDocuments(docs, query);
     console.log("重排后顺序（pageContent）：");
     for (const d of ranked) {

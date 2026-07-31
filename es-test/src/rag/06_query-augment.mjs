@@ -1,5 +1,5 @@
 /**
- * 用大模型根据用户问题生成恰好 3 条不同角度的检索问句；每条问句各自走 ES / Milvus，最后合并去重。
+ * 大模型重写用户问题：用大模型根据用户问题生成恰好 3 条不同角度的检索问句；每条问句各自走 ES / Milvus，最后合并去重。
  */
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import * as z from "zod";
@@ -23,6 +23,7 @@ const AUGMENT_PROMPT = ChatPromptTemplate.fromMessages([
   ["human", "{query}"],
 ]);
 
+// 规范化生成三个额外的查询问句
 function normalizeThreeQueries(original, list) {
   const out = (list ?? [])
     .map((s) => (typeof s === "string" ? s.trim() : ""))
@@ -31,7 +32,7 @@ function normalizeThreeQueries(original, list) {
   return out.slice(0, 3);
 }
 
-
+// 将用户问题传给大模型，生成 3 条多角度检索问句；若失败则返回原始问题三次
 export async function augmentQuery(chatModel, query) {
   const structured = chatModel.withStructuredOutput(QueryAugmentationSchema);
   const chain = AUGMENT_PROMPT.pipe(structured);

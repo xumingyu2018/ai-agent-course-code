@@ -28,21 +28,24 @@ const llm = new ChatOpenAI({
 const state = {
   messages: {
     value: (left, right) =>
-      left.concat(Array.isArray(right) ? right : [right]),
+      left.concat(Array.isArray(right) ? right : [right]), // 将新消息追加到消息数组中
     default: () => [],
   },
-  cypher: null,
-  context: null,
-  answer: null,
+  cypher: null, // 步骤1 产出：LLM 生成的 Cypher 语句
+  context: null,  // 步骤2 产出：图查询结果（检索到的知识）
+  answer: null, // 步骤3 产出：最终回答
 }
 
+// ----------------------
+// 用户查询（获取用户问题）
+// ----------------------
 function userQuery(state) {
   const last = state.messages[state.messages.length - 1]
   return last.content
 }
 
 // ----------------------
-// 步骤1：生成 Cypher
+// 步骤1：生成 Cypher（使用大模型自然语言描述生成 Cypher 语句）
 // ----------------------
 async function generateCypher(state) {
     const prompt = `
@@ -74,10 +77,11 @@ async function generateCypher(state) {
   }
 
 // ----------------------
-// 步骤2：执行图查询
+// 步骤2：执行图查询（这一步对应传统 RAG 中的 Retrieval（检索），只不过检索器从"向量数据库"换成了"图数据库"）
 // ----------------------
 async function executeGraphQuery(state) {
   try {
+    // 执行 Cypher 查询，并将结果存储在 state.context 中
     const res = await graph.query(state.cypher)
     return { context: JSON.stringify(res) }
   } catch (e) {

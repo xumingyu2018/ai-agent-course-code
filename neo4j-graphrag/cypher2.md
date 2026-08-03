@@ -15,5 +15,9 @@ DELETE t
 MATCH (i:Ingredient {name:"芋圆"})-[r]-()
 DELETE r, i
 6. 清空所有节点和关系（本地测试用）
+// 先删除所有关系
+MATCH ()-[r]-()
+DELETE r;
+// 再删除所有节点
 MATCH (n)
 DELETE n

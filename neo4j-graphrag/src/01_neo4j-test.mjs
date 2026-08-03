@@ -2,8 +2,8 @@ import neo4j from 'neo4j-driver'
 
 // 连接信息（和你的 docker-compose 完全一致）
 const driver = neo4j.driver(
-  'bolt://localhost:7687',
-  neo4j.auth.basic('neo4j', '12345678')
+  'bolt://localhost:7687', // Neo4j Bolt 协议地址
+  neo4j.auth.basic('neo4j', '12345678') // 用户名和密码
 )
 
 // 获取会话
@@ -35,6 +35,7 @@ async function queryData() {
   `)
 
   result.records.forEach(record => {
+    console.log(record.get('p').properties);
     console.log('奶茶:', record.get('p').properties.name)
     console.log('关系:', record.get('r').type)
     console.log('配料:', record.get('i').properties.name)

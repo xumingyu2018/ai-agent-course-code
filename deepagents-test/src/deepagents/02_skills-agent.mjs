@@ -27,6 +27,7 @@ const model = new ChatOpenAI({
   streaming: true,
 });
 
+// LocalShellBackend 允许在本地 shell 中执行命令，virtualMode: true 表示不实际修改文件系统，而是模拟操作，inheritEnv: true 表示继承当前进程的环境变量
 const backend = await LocalShellBackend.create({
   rootDir: ".",
   virtualMode: true,
@@ -38,8 +39,8 @@ const agent = createAgent({
   tools: [],
   systemPrompt: "按 skills 库完成任务，需要时 read_file 对应 SKILL.md。中文回答。",
   middleware: [
-    createSkillsMiddleware({ backend, sources: [skills] }),
-    createFilesystemMiddleware({ backend }),
+    createSkillsMiddleware({ backend, sources: [skills] }), // 先匹配 skills，未命中则 fallback 到 filesystem
+    createFilesystemMiddleware({ backend }), // fallback 到 filesystem
   ],
 });
 
@@ -67,6 +68,7 @@ function chunkText(chunk) {
   return "";
 }
 
+// streamEvents 允许流式输出模型的回复和工具调用事件，recursionLimit: 100 表示最多递归调用 100 层
 const stream = await agent.streamEvents(
   { messages: [new HumanMessage(prompt)] },
   { recursionLimit: 100 }

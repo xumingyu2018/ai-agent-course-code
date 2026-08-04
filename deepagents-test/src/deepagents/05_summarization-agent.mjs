@@ -42,14 +42,15 @@ const agent = createAgent({
   tools: [],
   systemPrompt:
     "你是会话助手。记住用户提到的关键事实，中文简短回答。若看到「此前对话摘要」，请据此继续对话。",
-  middleware: [
+  middleware: [ 
+    // 它的作用是如果当前对话上下文长度超过预设阈值，就自动对历史对话进行摘要压缩，剔除冗余信息，只保留关键上下文摘要，再传入大模型进行后续续写 / 问答
     createSummarizationMiddleware({
       model,
       backend,
       historyPathPrefix,
       summaryPrompt,
       // 低阈值便于 demo 触发摘要；生产环境可省略 trigger/keep，由模型 profile 自动推断
-      trigger: { type: "messages", value: 8 },
+      trigger: { type: "messages", value: 8 }, // 触发摘要的消息数量，当消息数超过 8 条时，触发摘要
       keep: { type: "messages", value: 4 },
     }),
   ],

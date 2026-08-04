@@ -30,10 +30,10 @@ const extendedToolsMiddleware = createMiddleware({
       "args:",
       request.toolCall.args ?? {}
     );
-    const result = await handler(request);
+    const result = await handler(request); // handle 执行工具调用
     if (!ToolMessage.isInstance(result)) return result;
 
-    const wrapped = new ToolMessage({
+    const wrapped = new ToolMessage({ // 将 getCurrentTime 的返回结果包装为 ToolMessage
       content: `${result.content}\n[wrapToolCall] 已由 ExtendedToolsMiddleware 包装`,
       tool_call_id: result.tool_call_id,
       name: result.name,
@@ -44,7 +44,8 @@ const extendedToolsMiddleware = createMiddleware({
         ? wrapped.content.slice(0, 120)
         : wrapped
     );
-    return new Command({
+    // 修改 tool call 的返回结果，增加包装后的内容，并更新工具调用计数
+    return new Command({ // new Command 会将其添加到 agent 的消息队列中
       update: {
         toolInvocationCount: request.state.toolInvocationCount + 1,
         messages: [wrapped],

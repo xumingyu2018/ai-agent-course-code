@@ -149,7 +149,7 @@ const agent = createAgent({
     "最后向家长汇总：答案、辅导要点、两道练习题。中文。",
   ].join("\n"),
   middleware: [
-    createSubAgentMiddleware({
+    createSubAgentMiddleware({ // subagents 允许主 Agent 委派任务给子 Agent，defaultModel 指定默认模型，generalPurposeAgent: false 表示不是通用 Agent，而是专门的子 Agent
       defaultModel: model,
       subagents,
       generalPurposeAgent: false,

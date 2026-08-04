@@ -7,7 +7,7 @@ import { createAgent, HumanMessage } from "langchain";
 import { createFilesystemMiddleware, FilesystemBackend } from "deepagents";
 
 const workspaceDir = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
+  path.dirname(fileURLToPath(import.meta.url)), // 获取当前文件的目录
   "workspace"
 );
 
@@ -18,9 +18,9 @@ const permissions = [
   { operations: ["write"], paths: ["/**"], mode: "deny" },
 ];
 
-fs.rmSync(workspaceDir, { recursive: true, force: true });
-fs.mkdirSync(workspaceDir);
-fs.writeFileSync(path.join(workspaceDir, "secret.txt"), "机密：不得读取", "utf8");
+fs.rmSync(workspaceDir, { recursive: true, force: true }); // 清理工作区，recursive: true 允许删除非空目录，force: true 允许删除不存在的目录
+fs.mkdirSync(workspaceDir); // 创建工作区目录
+fs.writeFileSync(path.join(workspaceDir, "secret.txt"), "机密：不得读取", "utf8"); // 创建机密文件
 
 const model = new ChatOpenAI({
   model: process.env.MODEL_NAME,
@@ -35,7 +35,7 @@ const agent = createAgent({
   systemPrompt:
     "工作区根路径为 /。用 ls、read_file、write_file、edit_file 操作文件，路径以 / 开头。中文回答。",
   middleware: [
-    createFilesystemMiddleware({
+    createFilesystemMiddleware({ // backend 用于实际操作文件，permissions 用于限制操作权限，new FilesystemBackend({ rootDir: workspaceDir, virtualMode: true }) 表示在 workspaceDir 下操作文件，virtualMode: true 表示不实际修改文件系统，而是模拟操作
       backend: new FilesystemBackend({ rootDir: workspaceDir, virtualMode: true }),
       permissions,
     }),

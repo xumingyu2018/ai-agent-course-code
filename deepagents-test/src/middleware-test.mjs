@@ -84,6 +84,7 @@ const model = new ChatOpenAI({
   temperature: 0,
 });
 
+// createAgent 这个 api 提供了 middleware 的扩展机制
 const agent = createAgent({
   model,
   tools: [],

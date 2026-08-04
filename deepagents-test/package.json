@@ -18,6 +18,6 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "agent-browser": "^0.27.0"
+    "agent-browser": "^0.27.3"
   }
 }

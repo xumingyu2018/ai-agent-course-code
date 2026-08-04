@@ -39,7 +39,7 @@ const agent = createAgent({
   ].join("\n"),
   middleware: [
     createFilesystemMiddleware({ backend }),
-    createMemoryMiddleware({
+    createMemoryMiddleware({ // createMemoryMiddleware 允许模型记忆信息，sources 指定记忆文件路径
       backend,
       sources: [projectMemoryPath, preferencesMemoryPath],
     }),

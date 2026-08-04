@@ -4,7 +4,7 @@
 import "dotenv/config";
 import { Client } from "langsmith";
 import { evaluate } from "langsmith/evaluation";
-import { ask } from "../rag_agent.mjs";
+import { ask } from "../02_rag_agent.mjs";
 import { ragEvaluators } from "./evaluators.mjs";
 
 const DATASET_NAME = "rag-eval-v1";
@@ -20,11 +20,12 @@ async function runRagAgent(inputs) {
 }
 
 async function main() {
+  // evaluate 会自动从 dataset 里读取样例，调用 runRagAgent 生成输出，然后调用 ragEvaluators 评估输出
   const result = await evaluate(runRagAgent, {
     data: DATASET_NAME,
     evaluators: ragEvaluators,
     client,
-    experimentPrefix: `rag-openevals-${process.env.MODEL_NAME ?? "qwen"}`,
+    experimentPrefix: `rag-openevals-${process.env.MODEL_NAME ?? "qwen"}`, // experimentPrefix 会作为实验名的一部分，方便区分不同模型的评测结果
     maxConcurrency: 2,
   });
 

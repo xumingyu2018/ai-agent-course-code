@@ -61,15 +61,18 @@ async function main() {
 
   let dataset;
   try {
+    // 尝试读取现有数据集
     dataset = await client.readDataset({ datasetName: DATASET_NAME });
     console.log(`数据集已存在: ${DATASET_NAME}`);
   } catch {
+    // 数据集不存在，创建新数据集，并添加描述
     dataset = await client.createDataset(DATASET_NAME, {
       description: "RAG Agent 回归评估集",
     });
     console.log(`已创建数据集: ${DATASET_NAME}`);
   }
 
+  // 创建 langsmith 样例
   const created = await client.createExamples(
     EXAMPLES.map((e) => ({
       dataset_id: dataset.id,

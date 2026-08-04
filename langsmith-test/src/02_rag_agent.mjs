@@ -34,6 +34,7 @@ const prompt = ChatPromptTemplate.fromMessages([
   ["human", "{question}"],
 ]);
 
+// 将 prompt、llm 和输出解析器组合成一个可运行的序列
 const chain = RunnableSequence.from([prompt, llm, new StringOutputParser()]);
 
 const GraphState = Annotation.Root({
@@ -42,11 +43,13 @@ const GraphState = Annotation.Root({
   answer: Annotation,
 });
 
+// 检索graph节点：从向量数据库中检索相关文档
 async function retrieve(state) {
   const docs = await retriever.invoke(state.question);
   return { context: docs };
 }
 
+// 生成graph节点：根据检索到的上下文和用户问题生成答案
 async function generate(state) {
   const contextText = state.context.map((d) => d.pageContent).join("\n\n");
   const answer = await chain.invoke({

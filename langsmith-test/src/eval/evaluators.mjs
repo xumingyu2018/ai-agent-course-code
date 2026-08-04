@@ -9,6 +9,7 @@ import {
 } from "openevals";
 import { ChatOpenAI } from "@langchain/openai";
 
+// openevals 内置了一些评估器可以用，直接引入对应的 prompt 即可，不用自己写
 const judge = new ChatOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
   configuration: { baseURL: process.env.OPENAI_BASE_URL },

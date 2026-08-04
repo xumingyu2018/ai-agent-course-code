@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { ask } from "./rag_agent.mjs";
+import { ask } from "./02_rag_agent.mjs";
 
 const DEFAULT_QUESTIONS = [
   "无理由退货要在几天内？",

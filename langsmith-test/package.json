@@ -4,8 +4,8 @@
   "type": "module",
   "description": "LangGraph RAG with Milvus and LangSmith evaluation",
   "scripts": {
-    "insert": "node src/milvus_insert.mjs",
-    "ask": "node src/cli.mjs",
+    "insert": "node src/01_milvus_insert.mjs",
+    "ask": "node src/03_cli.mjs",
     "eval:dataset": "node src/eval/build_dataset.mjs",
     "eval:run": "node src/eval/run_eval.mjs"
   },
@@ -18,6 +18,6 @@
     "@zilliz/milvus2-sdk-node": "^2.5.5",
     "dotenv": "^16.4.7",
     "langsmith": "^0.3.12",
-    "openevals": "^0.2.0"
+    "openevals": "^0.1.4"
   }
 }

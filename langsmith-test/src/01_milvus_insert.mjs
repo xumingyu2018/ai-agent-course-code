@@ -17,6 +17,7 @@ const embeddings = new OpenAIEmbeddings({
 
 const client = new MilvusClient({ address: MILVUS_ADDRESS });
 
+// 加载数据目录下的文本文件并切分为向量块
 async function loadChunks(dataDir = "./data") {
   if (!existsSync(dataDir)) {
     throw new Error(`数据目录不存在: ${dataDir}`);

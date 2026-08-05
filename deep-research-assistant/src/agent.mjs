@@ -12,6 +12,7 @@ const projectDir = path.resolve(
   "..",
 );
 
+// researcherSubAgent 负责调研单一子主题，最多调用 3 次 web_search，写入 findings 文件后结束
 const researcherSubAgent = {
   name: "researcher",
   description:
@@ -44,6 +45,7 @@ const researcherSubAgent = {
   tools: [webSearch],
 };
 
+// editorSubAgent 负责审阅报告草稿，给出修改建议，不直接改写报告
 const editorSubAgent = {
   name: "editor",
   description:
@@ -72,6 +74,7 @@ const editorSubAgent = {
   `,
 };
 
+// analystSubAgent 负责数值计算与数据分析，使用 eval REPL 进行计算，输出分析结果
 const analystSubAgent = {
   name: "analyst",
   description:
@@ -87,9 +90,10 @@ const analystSubAgent = {
 
     必须展示计算过程，结论可从 REPL 输出复现。所有输出使用中文。
   `,
-  middleware: [createCodeInterpreterMiddleware()],
+  middleware: [createCodeInterpreterMiddleware()], // createCodeInterpreterMiddleware 中间件，由 quickjs 包提供 eval REPL 计算
 };
 
+// orchestratorPrompt 是主 Agent 的系统提示，协调调研、分析与编辑，产出高质量调研简报，dedent 去掉换行和缩进的空格
 const orchestratorPrompt = dedent`
   你是「深度调研助手」的主 Agent，负责协调调研、分析与编辑，产出高质量调研简报。
 
@@ -149,7 +153,7 @@ export function createIntelligenceDeskAgent() {
     throw new Error("未设置 OPENAI_API_KEY 环境变量");
   }
 
-  const model = process.env.OPENAI_MODEL?.trim() || "gpt-4o";
+  const model = process.env.MODEL_NAME?.trim() || "gpt-4o";
   const baseURL = process.env.OPENAI_BASE_URL?.trim() || undefined;
 
   const backend = new FilesystemBackend({
@@ -171,14 +175,16 @@ export function createIntelligenceDeskAgent() {
       : {}),
   });
 
+  // 上下文压缩是内置功能，可以修改 profile.maxInputTokens 来修改触发阈值
   // Object.defineProperty(chatModel, "profile", {
   //   get: () => ({ maxInputTokens: 8_000 }),
   // });
 
+  // 调用 createDeepAgent 创建主 Agent，不用自己组装 middleware ，配置 skills 目录、memory 的文件路径、子 agent
   return createDeepAgent({
     model: chatModel,
     systemPrompt: orchestratorPrompt,
-    backend,
+    backend, // 使用 FilesystemBackend 作为存储后端，FilesystemBackend 支持虚拟模式，允许在内存中操作文件系统，而不实际写入磁盘
     memory: [path.join(projectDir, "AGENTS.md")],
     skills: ["/skills/"],
     subagents: [researcherSubAgent, editorSubAgent, analystSubAgent]

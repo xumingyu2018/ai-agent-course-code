@@ -8,6 +8,7 @@ import { HumanMessage } from "@langchain/core/messages";
 
 import { createIntelligenceDeskAgent, projectDir } from "./agent.mjs";
 
+// 该脚本是深度调研助手的 CLI 入口，负责读取用户输入的调研主题，调用主 Agent 执行调研任务，并格式化输出调研结果和报告列表。
 const projectRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",

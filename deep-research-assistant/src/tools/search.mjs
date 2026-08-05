@@ -8,12 +8,12 @@ function formatWebPages(webpages) {
     .map(
       (page, idx) =>
         `引用: ${idx + 1}
-标题: ${page.name ?? ""}
-URL: ${page.url ?? ""}
-摘要: ${page.summary ?? ""}
-网站名称: ${page.siteName ?? ""}
-网站图标: ${page.siteIcon ?? ""}
-发布时间: ${page.dateLastCrawled ?? ""}`,
+        标题: ${page.name ?? ""}
+        URL: ${page.url ?? ""}
+        摘要: ${page.summary ?? ""}
+        网站名称: ${page.siteName ?? ""}
+        网站图标: ${page.siteIcon ?? ""}
+        发布时间: ${page.dateLastCrawled ?? ""}`,
     )
     .join("\n\n");
 }

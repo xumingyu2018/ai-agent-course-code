@@ -2,7 +2,7 @@ import "dotenv/config";
 import { ChatOpenAI } from "@langchain/openai";
 
 const model = new ChatOpenAI({
-    model: process.env.OPENAI_MODEL,
+    model: process.env.MODEL_NAME,
     apiKey: process.env.OPENAI_API_KEY,
     temperature: 0,
     configuration: { 

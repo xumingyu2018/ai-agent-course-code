@@ -7,7 +7,7 @@ import {
 } from "langchain";
 
 const model = new ChatOpenAI({
-  model: process.env.OPENAI_MODEL,
+  model: process.env.MODEL_NAME,
   apiKey: process.env.OPENAI_API_KEY,
   temperature: 0,
   configuration: { 
@@ -20,7 +20,7 @@ const agent = createAgent({
   tools: [],
   systemPrompt:
     "你是生活规划助手。收到需要多步完成的请求时，先用 write_todos 列出中文执行步骤，然后简要说明你的计划。",
-  middleware: [todoListMiddleware()],
+  middleware: [todoListMiddleware()], // todoListMiddleware 中间件，帮助将复杂任务拆解为可执行的步骤，自带了 write_todos 的 tool，会生成 todo 列表写到 graph 的 state 里
 });
 
 const query =

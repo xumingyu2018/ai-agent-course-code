@@ -26,6 +26,7 @@ async function createMessage(conversationId, role, content, withEmbedding = fals
 
   if (withEmbedding) {
     const vector = await getEmbeddings().embedQuery(content);
+    // 将向量存储为 JSON 字符串，并使用 ::vector 类型转换为 pgvector 类型
     const { rows } = await query(
       `INSERT INTO messages (conversation_id, role, content, embedding)
        VALUES ($1, $2, $3, $4::vector)
@@ -67,6 +68,7 @@ async function getMessagesByConversationId(conversationId) {
 async function updateMessage(id, content, withEmbedding = false) {
   if (withEmbedding) {
     const vector = await getEmbeddings().embedQuery(content);
+    // 使用 ::vector 类型转换将 JSON 字符串转换为 pgvector 类型
     const { rows } = await query(
       `UPDATE messages
        SET content = $1, embedding = $2::vector
@@ -89,8 +91,11 @@ async function deleteMessage(id) {
   return rowCount > 0;
 }
 
+// 语义检索：根据搜索文本，返回与之最相似的消息列表
 async function searchSimilarMessages(conversationId, searchText, limit = 5) {
+  // 获取搜索文本的向量表示
   const vector = await getEmbeddings().embedQuery(searchText);
+  // 查询与向量最相似的消息，SQL 中使用 <=> 运算符计算向量之间的余弦相似度，1 - (embedding <=> $1::vector) 计算相似度得分，越接近 1 表示越相似
   const { rows } = await query(
     `SELECT id, conversation_id, role, content, created_at,
             1 - (embedding <=> $1::vector) AS similarity

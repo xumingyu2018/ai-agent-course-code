@@ -31,7 +31,7 @@ export class ConversationsController {
   @Post(':id/search')
   search(
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: SemanticSearchDto,
+    @Body() dto: SemanticSearchDto, // 创建用到的接受参数的 dto 
     @Query('limit', new DefaultValuePipe(5), ParseIntPipe) queryLimit?: number,
   ) {
     const limit = dto.limit ?? queryLimit ?? 5;

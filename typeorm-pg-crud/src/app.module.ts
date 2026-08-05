@@ -18,6 +18,7 @@ import { Message } from './conversations/entities/message.entity';
       database: 'hello_pg',
       synchronize: true,
       logging: true,
+      // entities 指定了 TypeORM 应该使用的实体类，这些类定义了数据库表的结构和关系
       entities: [User, Conversation, Message],
     }),
     ConversationsModule

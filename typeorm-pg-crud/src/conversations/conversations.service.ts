@@ -24,15 +24,16 @@ export class ConversationsService {
   private embeddings: OpenAIEmbeddings | null = null;
 
   constructor(
+    // InjectEntityManager 装饰器用于注入 TypeORM 的 EntityManager 实例，EntityManager 提供了对数据库的操作方法，em 获取操作数据库的增删改查的方法
     @InjectEntityManager()
     private readonly em: EntityManager,
   ) {}
 
-  /** 用户 → 会话（一对多） */
+  /** 用户 → 会话（一对多）查询用户的所有会话 */
   async findConversationsByUserId(userId: number) {
     const user = await this.em.findOne(User, {
       where: { id: userId },
-      relations: { conversations: true },
+      relations: { conversations: true }, // 加上 relations 就可以关联查询
       order: { conversations: { createdAt: 'DESC' } },
     });
 
@@ -43,7 +44,7 @@ export class ConversationsService {
     return user;
   }
 
-  /** 会话 → 消息（一对多） */
+  /** 会话 → 消息（一对多）查询会话的所有消息 */
   async findMessagesByConversationId(conversationId: number) {
     const conversation = await this.em.findOne(Conversation, {
       where: { id: conversationId },
@@ -88,6 +89,9 @@ export class ConversationsService {
 
     const vector = await this.embedQuery(searchText);
 
+    // 这里向量检索是扩展的 SQL 语法，TypeORM 不支持直接使用，所以使用原生 SQL 查询
+    // embedding <=> $1::vector 是 pgvector 提供的余弦距离计算方法，返回值越小表示越相似
+    // 1 - (embedding <=> $1::vector) AS similarity 是为了将距离转换为相似度，越大表示越相似
     const rows: SemanticSearchResult[] = await this.em.query(
       `SELECT id, conversation_id, role, content, created_at,
               1 - (embedding <=> $1::vector) AS similarity

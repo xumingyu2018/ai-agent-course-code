@@ -52,21 +52,25 @@ class RedisMessageStore {
     return `${this.keyPrefix}:${sessionId}:messages`;
   }
 
+  // 获取指定会话的消息列表，返回 ChatMessage 数组
   async loadMessages(sessionId) {
     const raw = await this.redis.get(this.messagesKey(sessionId));
     if (!raw) return [];
-    return mapStoredMessagesToChatMessages(JSON.parse(raw));
+    return mapStoredMessagesToChatMessages(JSON.parse(raw)); // mapStoredMessagesToChatMessages 将存储的消息对象转换为 ChatMessage 对象
   }
 
+  // 保存消息
   async saveMessages(sessionId, messages) {
-    const payload = JSON.stringify(mapChatMessagesToStoredMessages(messages));
+    const payload = JSON.stringify(mapChatMessagesToStoredMessages(messages)); // mapChatMessagesToStoredMessages 将 ChatMessage 对象转换为可存储的 redis 消息对象
     await this.redis.set(this.messagesKey(sessionId), payload, "EX", this.ttlSeconds);
   }
 
+  // 清空指定会话的消息
   async clear(sessionId) {
     await this.redis.del(this.messagesKey(sessionId));
   }
 
+  // 获取指定会话的消息 TTL，TTL 为 -1 表示没有设置过期时间，为 -2 表示 key 不存在
   async ttl(sessionId) {
     return this.redis.ttl(this.messagesKey(sessionId));
   }
@@ -88,6 +92,9 @@ async function invokeWithMemory(agent, store, sessionId, userText) {
   return result;
 }
 
+/**
+ * 连接 Redis 并创建 RedisMessageStore 实例
+*/
 const redis = new Redis({ host: REDIS_HOST, port: REDIS_PORT, db: REDIS_DB });
 
 redis.on("connect", () => console.log("✅ Redis 已连接"));
@@ -112,6 +119,7 @@ const agent = createAgent({
   systemPrompt:
     "你是会话助手。记住用户提到的关键事实，中文简短回答。若消息中有对话摘要，请据此继续对话。",
   middleware: [
+    // 这个中间件会在 agent 内部自动触发压缩，避免消息数过多导致 token 超限
     summarizationMiddleware({
       model,
       summaryPrompt,
@@ -128,7 +136,7 @@ let prevCount = (await store.loadMessages(SESSION_ID)).length;
 
 try {   
   while (true) {
-    const userText = (await rl.question("你: ")).trim();
+    const userText = (await rl.question("你: ")).trim(); // 用户输入
     if (!userText) continue;
 
     if (["exit", "quit", ":q"].includes(userText.toLowerCase())) break;

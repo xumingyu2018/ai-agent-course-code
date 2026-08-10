@@ -10,31 +10,32 @@ function log(title, data) {
 
 async function main() {
 
+  // memo0 原生集成向量语义检索（Milus）、BM25 关键词检索（Elasticsearch）、知识图谱关联检索（Neo4j）三大能力，默认完成三路检索的融合打分与结果排序
   const client = new MemoryClient({ 
     apiKey: process.env.MEM0_API_KEY
   });
 
-  // const conversation = [
-  //   { role: 'user', content: '我是素食主义者，而且对坚果过敏。' },
-  //   { role: 'assistant', content: '好的，我会记住你的饮食偏好。' },
-  //   { role: 'user', content: '我住在北京，平时喜欢跑步。' },
-  //   { role: 'assistant', content: '已记录：北京、爱好跑步。' },
-  // ];
+  const conversation = [
+    { role: 'user', content: '我是素食主义者，而且对坚果过敏。' },
+    { role: 'assistant', content: '好的，我会记住你的饮食偏好。' },
+    { role: 'user', content: '我住在北京，平时喜欢跑步。' },
+    { role: 'assistant', content: '已记录：北京、爱好跑步。' },
+  ];
 
-  // const added = await client.add(conversation, { userId: USER_ID });
-  // log('添加记忆', added);
+  const added = await client.add(conversation, { userId: USER_ID });
+  log('添加记忆', added);
 
-  const searchResult = await client.search('用户的饮食限制是什么？中文回答', {
-    filters: { user_id: USER_ID },
-    topK: 5
-  });
-  log('搜索记忆', searchResult);
-
-  // const allMemories = await client.getAll({
+  // const searchResult = await client.search('用户的饮食限制是什么？中文回答', {
   //   filters: { user_id: USER_ID },
-  //   pageSize: 10,
+  //   topK: 5
   // });
-  // log('列出全部记忆', allMemories);
+  // log('搜索记忆', searchResult);
+
+  const allMemories = await client.getAll({
+    filters: { user_id: USER_ID },
+    pageSize: 10,
+  });
+  log('列出全部记忆', allMemories);
 
 //   const firstMemory = allMemories.results?.[0] ?? searchResult.results?.[0];
 //   if (firstMemory?.id) {

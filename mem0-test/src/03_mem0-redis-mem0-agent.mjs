@@ -142,6 +142,7 @@ class Mem0MemoryStore {
     };
   }
 
+  // 构建 SystemMessage 注入到对话中
   buildSystemMessage({ user, session }) {
     const blocks = [];
     if (user.length) {
@@ -154,6 +155,7 @@ class Mem0MemoryStore {
     return new SystemMessage(`${blocks.join("\n\n")}\n\n请结合以上记忆回答，勿编造。`);
   }
 
+  // 分类并持久化记忆
   async classifyAndPersist(userText, assistantText) {
     const turn = [
       { role: "user", content: userText },
@@ -183,10 +185,13 @@ class Mem0MemoryStore {
   }
 }
 
+// 结合 Redis 与 Mem0 的对话调用
 async function invokeWithMemory(agent, redisStore, mem0Store, sessionId, userText) {
+  // 1. 从 Redis 加载所有历史消息（短期记忆）
   const history = await redisStore.loadMessages(sessionId);
   console.log(`  ↳ Redis 加载 ${history.length} 条历史`);
 
+  // 2. 从 Mem0 搜索用户层与会话层的长期记忆
   const mem = await mem0Store.search(userText);
   if (mem.user.length) console.log(`  ↳ Mem0 用户层 ${mem.user.length} 条`);
   if (mem.session.length) console.log(`  ↳ Mem0 会话层 ${mem.session.length} 条`);
@@ -253,6 +258,7 @@ const llmOpts = {
 
 const model = new ChatOpenAI({ model: process.env.MODEL_NAME, ...llmOpts });
 
+// 是为了让 Mem0 记忆分类器也用同一个模型和参数，保证分类结果与对话生成一致
 const classifier = new ChatOpenAI({
   model: process.env.MODEL_NAME,
   ...llmOpts,

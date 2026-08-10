@@ -7,9 +7,9 @@
 import "dotenv/config";
 import { MemoryClient } from "mem0ai";
 
-const USER_ID = "mem0_test_user";
-const RUN_ID = "mem0_test_session";
-const AGENT_ID = "mem0_test_agent";
+const USER_ID = "mem0_test_user"; // 用户记忆
+const RUN_ID = "mem0_test_session"; // 会话记忆
+const AGENT_ID = "mem0_test_agent"; // Agent 记忆
 
 function log(title, data) {
   console.log(`\n=== ${title} ===`);
@@ -47,7 +47,7 @@ async function addSessionMemory(client) {
 
 async function searchSessionMemory(client) {
   const searched = await client.search("这次对话要先做什么", {
-    filters: { AND: [{ user_id: USER_ID }, { run_id: RUN_ID }] },
+    filters: { AND: [{ user_id: USER_ID }, { run_id: RUN_ID }] }, // AND 逻辑组合过滤器，用于同时匹配 user_id 和 run_id
     topK: 5,
   });
   log("会话记忆 — search", searched.results?.map((m) => m.memory) ?? []);

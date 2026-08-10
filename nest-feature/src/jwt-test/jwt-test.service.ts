@@ -10,10 +10,12 @@ export interface JwtTestPayload {
 export class JwtTestService {
   constructor(private readonly jwtService: JwtService) {}
 
+  // 生成 JWT Token
   sign(payload: JwtTestPayload): string {
     return this.jwtService.sign(payload);
   }
 
+  // 校验 JWT Token
   verify(token: string): JwtTestPayload {
     try {
       return this.jwtService.verify<JwtTestPayload>(token);

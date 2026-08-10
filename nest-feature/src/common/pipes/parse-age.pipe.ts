@@ -5,8 +5,10 @@ import {
   PipeTransform,
 } from '@nestjs/common';
 
+// ParseAgePipe：将 age 查询参数字符串转为数字；非法值抛 400
 @Injectable()
 export class ParseAgePipe implements PipeTransform<string, number> {
+  // transform 方法接收两个参数：value 是要转换的值，metadata 是参数元数据
   transform(value: string, metadata: ArgumentMetadata): number {
     if (value === undefined || value === null || value === '') {
       throw new BadRequestException(

@@ -5,6 +5,7 @@ import {
   PipeTransform,
 } from '@nestjs/common';
 
+// ParsePositiveIntPipe：将字符串转为正整数；非法值抛 400
 @Injectable()
 export class ParsePositiveIntPipe implements PipeTransform<string, number> {
   transform(value: string, metadata: ArgumentMetadata): number {

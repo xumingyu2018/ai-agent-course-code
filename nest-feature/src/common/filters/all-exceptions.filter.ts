@@ -8,6 +8,7 @@ import {
 import { Response } from 'express';
 import { ApiResponse } from '../interfaces/api-response.interface';
 
+// AllExceptionsFilter：捕获所有异常，统一错误格式的响应
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {

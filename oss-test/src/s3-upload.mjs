@@ -2,6 +2,9 @@ import 'dotenv/config';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import fs from 'fs';
 
+/**
+ * 通用S3文件上传（RustFS/MinIO/阿里云OSS通用）
+ */
 // 初始化统一S3客户端（RustFS/MinIO/阿里云OSS通用）
 const s3Client = new S3Client({
   endpoint: process.env.S3_ENDPOINT,

@@ -2,6 +2,9 @@ import 'dotenv/config';
 import OSS from 'ali-oss';
 import fs from 'fs';
 
+/**
+ * 阿里云OSS文件上传
+ */
 const client = new OSS({
   // yourRegion填写Bucket所在地域。以华东1（杭州）为例，Region填写为oss-cn-hangzhou。
   region: process.env.OSS_REGION,

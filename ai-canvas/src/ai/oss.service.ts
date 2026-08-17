@@ -32,6 +32,7 @@ export class OssService {
     const accessKeyId = this.trimEnv('OSS_ACCESS_KEY_ID');
     const accessKeySecret = this.trimEnv('OSS_ACCESS_KEY_SECRET');
 
+    // 创建 OSS 客户端
     this.client = new OSS({
       region: this.region,
       accessKeyId,
@@ -40,6 +41,7 @@ export class OssService {
       bucket: this.bucket,
     });
 
+    // 阿里云OSS上传签名生成的客户端，用于Web端使用临时访问凭证可以直接上传文件到OSS
     this.postClient = new OSS({
       region: this.region,
       accessKeyId,
@@ -48,6 +50,7 @@ export class OssService {
     });
   }
 
+  // 前端直传OSS签名生成
   createUploadPolicy(ext = '.jpg'): OssUploadSignature {
     const prefix = this.config.get<string>(
       'OSS_UPLOAD_PREFIX',
@@ -95,6 +98,7 @@ export class OssService {
     return this.getSignedUrl(objectKey);
   }
 
+  // 后端上传文件到OSS
   async uploadBuffer(
     buffer: Buffer,
     prefix: string,
@@ -115,6 +119,7 @@ export class OssService {
     return this.client.signatureUrl(objectKey, { expires });
   }
 
+  // AI 生图服务返回的 URL 通常是临时的、几小时后失效，所以 fetch 下来再 put 到自己的 bucket，返回永久 key
   async uploadFromUrl(sourceUrl: string): Promise<string> {
     const response = await fetch(sourceUrl);
     if (!response.ok) {

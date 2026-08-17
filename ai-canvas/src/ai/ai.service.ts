@@ -45,13 +45,15 @@ export class AiService {
     };
     const inputImageUrl = dto.imageUrl;
     const resultUrl = inputImageUrl
+    // 有图走编辑模型
       ? await this.generateByEdit(
           [
             { text: dto.prompt },
-            { image: this.ossService.resolveReadableUrl(inputImageUrl) },
+            { image: this.ossService.resolveReadableUrl(inputImageUrl) }, // 换成带有签名的可读 URL，避免 DashScope 无法访问私有 OSS 文件
           ],
           options,
         )
+        // 没图走文生图模型
       : await this.generateByText([{ text: dto.prompt }], options);
 
     const url = await this.ossService.uploadFromUrl(resultUrl);
@@ -74,6 +76,7 @@ export class AiService {
   }
 
   getUploadSignature(ext?: string) {
+    // 生成前端直传OSS的签名
     return this.ossService.createUploadPolicy(ext);
   }
 

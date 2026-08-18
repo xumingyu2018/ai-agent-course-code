@@ -1,0 +1,25 @@
+{
+  "name": "rabbitmq-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "fanout:consumer:vector": "node src/fanout/consumer-vector.js",
+    "fanout:consumer:es": "node src/fanout/consumer-es.js",
+    "fanout:producer": "node src/fanout/producer.js",
+    "direct:consumer": "node src/direct/consumer.js",
+    "direct:producer": "node src/direct/producer.js",
+    "topic:consumer": "node src/topic/consumer.js",
+    "topic:producer": "node src/topic/producer.js",
+    "headers:consumer": "node src/headers/consumer.js",
+    "headers:producer": "node src/headers/producer.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^2.0.1"
+  },
+  "type": "module"
+}

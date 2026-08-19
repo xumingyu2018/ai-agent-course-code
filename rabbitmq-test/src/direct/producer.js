@@ -27,6 +27,7 @@ async function main() {
 
   for (const task of tasks) {
     /**
+     * channel.publish()：向交换机投递消息。
      * 第二个参数就是 routing key。
      * Exchange 会拿它去和各队列的 binding key 做精确匹配，决定投递到哪些 Queue。
      */
